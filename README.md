@@ -1,27 +1,39 @@
 # Visual Quality System (VQS)
 
-**A source-aware design-quality checker and repair framework for Power BI dashboards and generated documents.** VQS is being built to determine *why* a visual is hard to interpret, correlate rendered defects with report configuration and real data, produce constrained source changes and demonstrate measurable improvement. It is **not** another screenshot-to-AI taste prompt.
+**A user-journey-led, source-aware design checker and repair framework for Power BI dashboards and generated documents.** VQS asks whether a report answers the *right questions for its users*, conveys correct and appropriately scoped data, has a coherent and accessible visual identity, and supports the intended investigation and action. It correlates the actual report definition and model data with rendered evidence, identifies concrete defects, proposes constrained source repairs and checks the result. It is **not** a screenshot-to-AI taste prompt or a collection of disconnected linters.
 
-> **Status: pre-alpha, partial extraction.** A standalone Python package with policy, PBIR visual inventory, source hashes, PNG/review integrity checks and a few measured design-rule primitives now lives here. The full Desktop-render → multi-model review → safe repair loop remains in [PBIPDocumenter draft PR #12](https://github.com/analienx/pbidocumenter/pull/12) (source prototype `99ae076`) and has **not** yet been ported or verified end to end here. Do not treat this repository as a production-ready visual-quality gate. The repository URL retains its original spelling, `visial-quakity-system`.
+> **Status: pre-alpha; partial extraction.** A portable Python package with PBIR visual inventory, versioned observation policy, source/image provenance checks, an initial CLI and isolated quantitative design-rule primitives is present. User-journey coverage, effective theme resolution, whole-report color/composition analysis, external tool adapters and the full autonomous Desktop → review → repair loop **are not yet operational in this repository**. The tested prototype remains in [PBIPDocumenter draft PR #12](https://github.com/analienx/pbidocumenter/pull/12). No production-ready visual-quality release is claimed.
 
-## What does VQS evaluate?
+## Product contract: purpose → insight → design → action
 
-A VQS finding is identified by a versioned rule, the exact page and visual, the underlying source revision, *measured* evidence, the observable symptom, hypotheses versus verified causes, repair options and required regression checks. Missing model data or unmeasured effective formatting must be `unknown`/`blocked`, never guessed from pixels.
+Each evaluation begins with a **persona and analytical task**: who uses this, in what context, which decisions they need to make, and how they recognize, investigate and act on an interesting signal. Map `persona → user story → question → page/visual/interaction → actual measure and filters → evidence → action`. A page can be beautiful and still fail because the business question is unanswerable; it can be statistically correct but fail because labels or color obscure the finding. Never fabricate business intent from a screenshot or claim a causal “why” without supporting evidence.
 
-| Layer | Purpose | Current status |
+The question families are **what** (state/deviation), **when** (timing/trend), **where / who / which** (affected segments or entities), **how** (process/contribution) and **why / what next** (evidence for possible drivers and the supported decision). These are configurable user-story needs, **not five mandatory charts per page**. Typical journeys are `overview → exception → comparison → focused investigation → supporting detail → action/return`; exploratory and operational use cases can differ. The system must check missing questions, redundant visuals and broken drillthrough/filter context as well as the appearance of each chart.
+
+VQS evaluates a **visual language**, not a prescribed palette. It must analyze effective Power BI theme and visual overrides, meaningful category/alert/highlight color assignments, categorical separation, sequential/diverging scale semantics, text/mark contrast, fonts, salience, spacing, whitespace, grouping, alignment, balance, reading order and consistent interaction states. The overall *feeling* should be deliberate, brand-aligned and suitable for the audience: a restrained executive overview, dense operational monitor and exploratory analysis legitimately have different style profiles. Interpretive vision review tests this coherence against the explicit profile; measurable rules and actual data remain independent release requirements.
+
+**Detailed requirements:** [product and design contract](docs/PRODUCT_AND_DESIGN_CONTRACT.md) · [tool integration strategy](docs/INTEGRATION_STRATEGY.md) · [technical architecture](docs/ARCHITECTURE.md).
+
+## What is evaluated, and what works today?
+
+| Quality dimension | Intended evidence and decision | State in standalone VQS |
 | --- | --- | --- |
-| **Report definition** | Inspect PBIR visual types, positions, field bindings, sorting and explicit formatting; resolve effective theme and report design intent | **Portable read-only inventory extracted**; theme resolution and full geometry rules pending |
-| **Data-aware design** | Assess distinct tick labels, category/label-space budgets, chart suitability, actual model cardinality, units and filter context | **Pure axis-distinctness, opaque-text contrast and measured category-space primitives present**; no live model-query integration or whole-report rule engine yet |
-| **Rendered reality** | Certify complete, source-bound Power BI page images and chart crops; detect actual clipping, scrollbars and blank visuals | Portable PNG/hash checks extracted; Windows Desktop Bridge and calibrated crop remain in prototype |
-| **Independent interpretive review** | Evaluate hierarchy, composition and business storytelling using whole-page/crop images plus source facts; adjudicate unsupported claims | Versioned **25 Power BI / 23 Word observation contract** extracted; Pi/model adapters remain in prototype |
-| **Safe remediation** | Trace findings to exact PBIR/DAX/Word source, apply allowlisted edits in isolation and rerender entire affected pages to catch regressions | Source-bound scatter→ranked-bar and fit recipes tested in prototype; not ported or approved for general autonomous use |
-| **Word output** | Inspect OOXML and actual paginated DOCX rendering, tables, figures, typography and cross-output consistency | Policy/evidence shared; renderer, document checks and repair loop remain in prototype |
+| User journeys and questions | Audience, decisions, required what/when/where/how/why questions, page/visual coverage, drillthrough and return paths | **Specified; not implemented** |
+| Report and semantic facts | PBIR types, positions, bindings, sorting, themes/overrides, actual scoped data distributions and measure units | PBIR read-only inventory extracted; effective theme resolution and live model query **pending** |
+| Data-aware design rules | Chart-task compatibility, duplicate axis values, category/label budget, numeric precision, scale/encoding correctness | Isolated measured axis/contrast/category-space primitives present; **no complete rule engine** |
+| Visual identity and accessibility | Brand/design tokens, palette roles, consistency, effective color contrast, typography, whitespace, alignment, page coherence | Initial opaque-color contrast primitive and observation policy only; **comprehensive analyzer pending** |
+| Rendered behavior | Exact-instance native Power BI capture, complete canvas/crops, clipping, scrollbars, populated values and target-size readability | Portable PNG/source integrity present; Windows Desktop Bridge adapter remains in prototype |
+| Independent interpretation | Whole-page and visual-crop review **with** user story, PBIR/data facts and specific observations | Versioned 25 Power BI / 23 Word question sets present; model adapters remain in prototype |
+| Safe repairs and regression | Isolated source changes, semantic/interaction integrity, fresh rerender and independent re-review | Constrained prototype recipes not yet ported or independently accepted |
+| Generated Word output | OOXML and every paginated page, narrative/figure consistency with the corresponding report revision | Shared policy/evidence present; complete document loop pending |
 
-A screenshot is **necessary rendered evidence**, not a substitute for semantic analysis. Valid PBIR is not visual approval. A model opinion cannot override a failed quantitative test or a data-refresh blocker.
+Outputs should be **source-linked findings and question-coverage gaps**, not an ungrounded global visual score. Every rule records applicable context, evidence, violated expectation, affected visual/story, supported repair and verification plan. `unknown`/`blocked` are different from `pass`.
 
-## What is executable here today?
+## Integrate tools, rather than fork a monolith
 
-The pre-alpha CLI reads a PBIR project without Power BI Desktop, external accounts or downloading a vision model:
+VQS **owns the decision and design-quality layer**. Existing tools are version-pinned, optional capability providers: use Fab Inspector for supported PBIR/Fabric governance findings; Microsoft schemas/authoring tooling for definition validation; read-only semantic-model tools for actual query evidence; Desktop Bridge for real rendering; optionally map chart/task constraints to Draco 2 where representable; and use an explicitly configured image-capable model for interpretive review. **The user-journey graph, purpose-driven chart assessment, palette/overall composition assessment, evidence arbitration and safe repair contract are VQS-owned.** Do not copy or vendor upstream code merely for convenience. See [integration strategy](docs/INTEGRATION_STRATEGY.md) and [research](docs/RESEARCH.md) for boundaries, licenses and what is not yet integrated.
+
+## Executable pre-alpha surface
 
 ```bash
 python -m pip install -e '.[test]'
@@ -29,23 +41,14 @@ vqs inventory /path/to/Example.Report
 python -m pytest
 ```
 
-`vqs inventory` outputs page/visual IDs, types, geometry, query roles, sort information, explicitly stored formatting and a report-plus-model **source SHA-256**. It does **not** resolve default theme formatting, query measures or decide that a dashboard looks good. The pure rules in `vqs.design_rules` accept independently verified tick values/labels, resolved opaque colors or measured label widths; they return `pass`, `fail` or `unknown` for that *individual rule*.
+`vqs inventory` reads a PBIR project, outputs page/visual IDs, geometry, bindings, stored formatting and a source SHA-256. It does not resolve all theme defaults, query the model or approve visual design. `vqs request-review REPORT RENDERS --fixer-id EXECUTOR` accepts a manifest binding each report page to a fresh, verifiable PNG and emits an **unapproved** observation request; it cannot capture, repair or approve a dashboard on its own. These commands are not substitutes for the planned full journey/design gate.
 
-A second command, `vqs request-review REPORT RENDERS --fixer-id EXECUTOR`, accepts a capture manifest with `source_sha256`, `files` (PNG filename → SHA-256), and an explicit `page_images` mapping (PBIR page ID → PNG filename). It requires **every** PBIR page to map uniquely to a verified current image and outputs an *unapproved* observation template. It cannot create images or approve a report. Render/repair/model adapters must be separately integrated and tested. The status and test code are in [the implementation and acceptance plan](docs/ARCHITECTURE.md#extraction-plan-and-acceptance).
+## Planned workflow and acceptance
 
-## Intended end-to-end flow (not yet operational in this repo)
+`user stories + design profile → report/model and required data facts → structural/governance checks → question coverage + quantitative design + visual-language rules → saved, populated render at target viewport and journey states → source-grounded independent interpretive review → evidence adjudication → bounded isolated repair → full data/page/journey/document regression → pass | fail | blocked`.
 
-1. Load and validate PBIR, effective theme and associated semantic-model facts; obtain authorized, scope-bound read-only DAX values where needed.
-2. Apply testable design rules for axis precision/density, task/encoding suitability, color semantics and contrast, typography, spacing, alignment, table utilization and narrative hierarchy. Preserve `unknown` for missing evidence.
-3. Open a disposable PBIP in Desktop, require the exact PID/path and saved state, capture all pages through the Bridge and independently verify full-canvas calibration and loaded data.
-4. Let an independent vision reviewer inspect actual images with structured facts; require locations and source-grounded diagnoses rather than accepting unsupported aesthetic suggestions.
-5. Generate bounded repair plans, validate/execute only safe source operations in an isolated candidate, reload/rerender and check both the original defect and newly introduced page-level problems.
-6. Repeat within a recorded iteration budget. Return `pass`, `fail` or `blocked` with reproducible evidence, never a silent AI approval. Apply analogous checks to every paginated Word document page.
-
-## Why a new repository rather than a fork?
-
-[Fab Inspector](https://github.com/NatVanG/fab-inspector) already supplies extensive configurable PBIR/Fabric governance checks and JSON/CI output, while [Draco 2](https://github.com/cmudig/draco2) supplies formal chart-design constraints. We will **integrate** those as optional, version-pinned engines rather than copy their code or make an unrelated governance tool our primary architecture. Microsoft's [report-authoring tools](https://github.com/microsoft/skills-for-fabric) and [Desktop Bridge CLI](https://www.npmjs.com/package/@microsoft/powerbi-desktop-bridge-cli) supply metadata validation and real renders, not an overall design evaluator. See the evidence-backed [ecosystem research](docs/RESEARCH.md) and [architecture](docs/ARCHITECTURE.md), including limitations, licenses, security and acceptance tests.
+Release acceptance requires tests on **at least two unrelated PBIP projects**, realistic default and filtered journeys, accurate color/axis/cardinality fixture findings, a real before/after repair with no neighboring visual regression, and all-page generated Word validation. Cloud image or model-data transfer is opt-in. A missing tool, stale screenshot, unsupported question or absent model data cannot be silently approved.
 
 ## Ownership and migration
 
-VQS owns reusable rules, evidence, interfaces, adapters and the repair loop. PBIPDocumenter will consume VQS as a pinned package/CLI and supply the report plus generated Word document. Its existing PR stays **draft and intact** until the independent package passes equivalent and second-project tests. This repository intentionally excludes Contoso sample data, ABF cache, screenshots, personal machine paths, Desktop PIDs, cloud credentials and third-party binaries. Extracted code retains [Apache-2.0 licensing and attribution](NOTICE); optional upstream dependencies remain under their own terms. The current source is **not** a fork of Fab Inspector or Draco 2.
+This independent repository is now [analienx/visual-quality-system](https://github.com/analienx/visual-quality-system). PBIPDocumenter will become a pinned VQS consumer; its draft PR remains intact until the standalone package has equivalent verified coverage. Do not move Contoso cached data, screenshots, personal machine configuration, credentials or third-party binaries into this public repository. Extracted source keeps [Apache-2.0 attribution](NOTICE), and third-party tools retain their own licenses. Remaining work is tracked in [issue #1](https://github.com/analienx/visual-quality-system/issues/1).

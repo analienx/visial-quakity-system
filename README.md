@@ -1,47 +1,51 @@
 # Visual Quality System (VQS)
 
-**Source-aware design-quality analysis for Power BI dashboards and generated documents.** VQS is intended to determine *why* a visual is hard to read or analytically misleading, produce a verifiable source-level repair, and check that the rendered result improves. It is **not** a screenshot-to-LLM taste prompt, a Power BI custom visual, or a substitute for validating the data model.
+**A source-aware design-quality checker and repair framework for Power BI dashboards and generated documents.** VQS is being built to determine *why* a visual is hard to interpret, correlate rendered defects with report configuration and real data, produce constrained source changes and demonstrate measurable improvement. It is **not** another screenshot-to-AI taste prompt.
 
-> **Status: extraction / pre-alpha.** This repository is a new, independently maintained home for VQS. The proven Power BI/Word prototype is still in [PBIPDocumenter draft PR #12](https://github.com/analienx/pbidocumenter/pull/12) (prototype commit `99ae076`); do not infer that every capability described below already works here. No production-ready package, CI-quality release, unattended full-report remediation, or independent second-project validation is claimed. The target repository name retains its original spelling, `visial-quakity-system`.
+> **Status: pre-alpha, partial extraction.** A standalone Python package with policy, PBIR visual inventory, source hashes, PNG/review integrity checks and a few measured design-rule primitives now lives here. The full Desktop-render → multi-model review → safe repair loop remains in [PBIPDocumenter draft PR #12](https://github.com/analienx/pbidocumenter/pull/12) (source prototype `99ae076`) and has **not** yet been ported or verified end to end here. Do not treat this repository as a production-ready visual-quality gate. The repository URL retains its original spelling, `visial-quakity-system`.
 
-## What will be evaluated?
+## What does VQS evaluate?
 
-The central artifact is a **source-linked design finding**, not an overall AI quality score. Every applicable rule has an ID, measured or observed evidence, affected page/visual, reason, confidence/limits, proposed repair, and a verification requirement. A missing input is `unknown` or `blocked`, never an implicit pass.
+A VQS finding is identified by a versioned rule, the exact page and visual, the underlying source revision, *measured* evidence, the observable symptom, hypotheses versus verified causes, repair options and required regression checks. Missing model data or unmeasured effective formatting must be `unknown`/`blocked`, never guessed from pixels.
 
-| Layer | Evidence | Example decisions | Status |
-| --- | --- | --- | --- |
-| Report definition | PBIR page and visual JSON, theme, formatting, geometry, IDs and field bindings | Bounds, margin/gutter consistency, grouping, explicit title/axis settings | Prototype in PBIPDocumenter; extraction in progress |
-| Semantic model and actual data | TMDL, partition/refresh state, authorized read-only DAX queries, category cardinality and numeric ranges | Meaningful axis precision; excessive categories; degenerate scatter data; percent vs percentage-point misuse | Model context in prototype; comprehensive quantitative design rules **not implemented** |
-| Deterministic design rules | Configurable constraints on joined definition/data evidence and chart intent | Repeated formatted ticks, label-space budget, encoding/task compatibility, contrast, table utilization | Geometry-only prototype; broader rule engine **planned** |
-| Rendered behavior | Real Power BI Desktop output, page and chart images bound to exact source digest | True clipping, scrollbars, visible tick labels, blank KPIs, legibility at target size | Desktop Bridge and crop prototype tested in PBIPDocumenter; independent port pending |
-| Independent visual interpretation | Opt-in vision model receives whole page, focused crop, source facts and testable observations | Hierarchy, composition, storytelling; propose candidate explanations, not unchecked root causes | Opt-in Pi/Cline reviewer tested on Contoso; inconsistent findings still require adjudication |
-| Repair and regression | Allowlisted PBIR edits in an isolated candidate, tool validation, reload, recapture, repeat | Eliminate a duplicate-axis defect without hiding a category or shortening the action table | Constrained scatter→bar and geometry prototype; whole-report unattended loop **not proven** |
-| Generated documents | OOXML styles/structure plus *all* paginated rendered Word pages | Minimum font sizes, figure fidelity, page breaks, table splits and report/document consistency | Structural prototype; end-to-end rendered repair **not proven** |
+| Layer | Purpose | Current status |
+| --- | --- | --- |
+| **Report definition** | Inspect PBIR visual types, positions, field bindings, sorting and explicit formatting; resolve effective theme and report design intent | **Portable read-only inventory extracted**; theme resolution and full geometry rules pending |
+| **Data-aware design** | Assess distinct tick labels, category/label-space budgets, chart suitability, actual model cardinality, units and filter context | **Pure axis-distinctness, opaque-text contrast and measured category-space primitives present**; no live model-query integration or whole-report rule engine yet |
+| **Rendered reality** | Certify complete, source-bound Power BI page images and chart crops; detect actual clipping, scrollbars and blank visuals | Portable PNG/hash checks extracted; Windows Desktop Bridge and calibrated crop remain in prototype |
+| **Independent interpretive review** | Evaluate hierarchy, composition and business storytelling using whole-page/crop images plus source facts; adjudicate unsupported claims | Versioned **25 Power BI / 23 Word observation contract** extracted; Pi/model adapters remain in prototype |
+| **Safe remediation** | Trace findings to exact PBIR/DAX/Word source, apply allowlisted edits in isolation and rerender entire affected pages to catch regressions | Source-bound scatter→ranked-bar and fit recipes tested in prototype; not ported or approved for general autonomous use |
+| **Word output** | Inspect OOXML and actual paginated DOCX rendering, tables, figures, typography and cross-output consistency | Policy/evidence shared; renderer, document checks and repair loop remain in prototype |
 
-An image is final *rendered evidence*, not the sole design evaluator. Structural correctness also cannot approve poor visuals; the release gate requires successful data/refresh, source evidence, deterministic checks and supported independent review together.
+A screenshot is **necessary rendered evidence**, not a substitute for semantic analysis. Valid PBIR is not visual approval. A model opinion cannot override a failed quantitative test or a data-refresh blocker.
 
-## Intended use
+## What is executable here today?
 
-1. Import a PBIP/PBIR report and its semantic-model reference; construct an explicit visual inventory and design-intent contract.
-2. Run offline PBIR validation and independent configurable design rules; optionally query a **specified and authorized** local/remote semantic model for ranges, cardinalities and measure semantics.
-3. Open a disposable copy in Power BI Desktop on Windows; select the exact instance by PID, require saved state, render all pages and validate the entire canvas and source hashes.
-4. Evaluate deterministic findings first; send the page/crop plus structured evidence to an **explicitly configured image-capable** reviewer for remaining interpretive judgments. Never upload sensitive data or images without permission.
-5. Have a separate planner diagnose findings against PBIR and real data. Apply narrowly allowlisted changes only to an isolated candidate; validate/reopen/rerender the **whole affected page** and check for new failures.
-6. Continue within an explicit iteration budget; return `pass`, `fail` or `blocked` with durable evidence. Never convert timeout, model disagreement, absent data, missing review or stale screenshot into a pass.
-7. Apply the analogous process to a generated DOCX using document structure and paginated render evidence.
+The pre-alpha CLI reads a PBIR project without Power BI Desktop, external accounts or downloading a vision model:
 
-**Example planned finding (illustrative, not a current computed result):** `axis.display_values_not_distinct` identifies two different underlying ticks that both format as `10%`, links to the exact PBIR visual and measure, proposes a precision or chart-encoding change, and requires a fresh Desktop render proving the labels are distinguishable.
+```bash
+python -m pip install -e '.[test]'
+vqs inventory /path/to/Example.Report
+python -m pytest
+```
 
-## Design and reuse decisions
+`vqs inventory` outputs page/visual IDs, types, geometry, query roles, sort information, explicitly stored formatting and a report-plus-model **source SHA-256**. It does **not** resolve default theme formatting, query measures or decide that a dashboard looks good. The pure rules in `vqs.design_rules` accept independently verified tick values/labels, resolved opaque colors or measured label widths; they return `pass`, `fail` or `unknown` for that *individual rule*.
 
-We will **not fork another tool wholesale**. [Fab Inspector](https://github.com/NatVanG/fab-inspector) already provides extensive PBIR/JSONLogic policy checks; VQS should consume its machine-readable findings via an optional adapter instead of rebuilding its existing governance rules. [Draco 2](https://github.com/cmudig/draco2) offers formal visualization constraints; a Power BI-to-neutral-chart-spec bridge can reuse its concepts or engine without claiming native PBIR support. Microsoft's [Power BI report authoring tools](https://github.com/microsoft/skills-for-fabric) and [Desktop Bridge CLI](https://www.npmjs.com/package/@microsoft/powerbi-desktop-bridge-cli) provide metadata validation and real Desktop capture; semantic-model tools are separate. Detailed trade-offs, links and license caveats are in [research](docs/RESEARCH.md) and [architecture](docs/ARCHITECTURE.md).
+A second command, `vqs request-review REPORT RENDERS --fixer-id EXECUTOR`, accepts a capture manifest with `source_sha256`, `files` (PNG filename → SHA-256), and an explicit `page_images` mapping (PBIR page ID → PNG filename). It requires **every** PBIR page to map uniquely to a verified current image and outputs an *unapproved* observation template. It cannot create images or approve a report. Render/repair/model adapters must be separately integrated and tested. The status and test code are in [the implementation and acceptance plan](docs/ARCHITECTURE.md#extraction-plan-and-acceptance).
 
-## Repository boundaries and migration
+## Intended end-to-end flow (not yet operational in this repo)
 
-VQS owns the **portable engine, evidence schemas, quality rules, adapters, and safe remediation loop**. PBIPDocumenter remains a consumer that supplies its report and generated Word document and receives structured findings and release decisions. Do not move its application, Contoso-specific PBIP/ABF cache, generated screenshots, source data, tokens, profile paths, local PID/calibration, or unrelated tests here. Preserve its draft PR while extracted interfaces are independently tested; do not delete the prototype until the new package has equivalent test coverage and a migration release.
+1. Load and validate PBIR, effective theme and associated semantic-model facts; obtain authorized, scope-bound read-only DAX values where needed.
+2. Apply testable design rules for axis precision/density, task/encoding suitability, color semantics and contrast, typography, spacing, alignment, table utilization and narrative hierarchy. Preserve `unknown` for missing evidence.
+3. Open a disposable PBIP in Desktop, require the exact PID/path and saved state, capture all pages through the Bridge and independently verify full-canvas calibration and loaded data.
+4. Let an independent vision reviewer inspect actual images with structured facts; require locations and source-grounded diagnoses rather than accepting unsupported aesthetic suggestions.
+5. Generate bounded repair plans, validate/execute only safe source operations in an isolated candidate, reload/rerender and check both the original defect and newly introduced page-level problems.
+6. Repeat within a recorded iteration budget. Return `pass`, `fail` or `blocked` with reproducible evidence, never a silent AI approval. Apply analogous checks to every paginated Word document page.
 
-The original prototype is [here](https://github.com/analienx/pbidocumenter/tree/99ae076/pbip_documenter/visual_quality); its 109-test repository run and single-page repair trial applied to the *original project*, not to this new repo. See [migration and milestones](docs/ARCHITECTURE.md#extraction-plan-and-acceptance) for the exact work remaining.
+## Why a new repository rather than a fork?
 
-## License and dependencies
+[Fab Inspector](https://github.com/NatVanG/fab-inspector) already supplies extensive configurable PBIR/Fabric governance checks and JSON/CI output, while [Draco 2](https://github.com/cmudig/draco2) supplies formal chart-design constraints. We will **integrate** those as optional, version-pinned engines rather than copy their code or make an unrelated governance tool our primary architecture. Microsoft's [report-authoring tools](https://github.com/microsoft/skills-for-fabric) and [Desktop Bridge CLI](https://www.npmjs.com/package/@microsoft/powerbi-desktop-bridge-cli) supply metadata validation and real renders, not an overall design evaluator. See the evidence-backed [ecosystem research](docs/RESEARCH.md) and [architecture](docs/ARCHITECTURE.md), including limitations, licenses, security and acceptance tests.
 
-The original PBIPDocumenter project is Apache-2.0. Respect its copyright and attribution when extracting source. Fab Inspector and Draco 2 are MIT-licensed, but **their code has not been copied into VQS**. Microsoft's modeling MCP has an MIT repository license and also publishes preview EULA terms: confirm the terms for a chosen distribution/runtime before bundling. Third-party CLI executables, models, credentials and licenses are **not vendored**.
+## Ownership and migration
+
+VQS owns reusable rules, evidence, interfaces, adapters and the repair loop. PBIPDocumenter will consume VQS as a pinned package/CLI and supply the report plus generated Word document. Its existing PR stays **draft and intact** until the independent package passes equivalent and second-project tests. This repository intentionally excludes Contoso sample data, ABF cache, screenshots, personal machine paths, Desktop PIDs, cloud credentials and third-party binaries. Extracted code retains [Apache-2.0 licensing and attribution](NOTICE); optional upstream dependencies remain under their own terms. The current source is **not** a fork of Fab Inspector or Draco 2.

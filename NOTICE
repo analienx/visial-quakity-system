@@ -1,0 +1,15 @@
+Visual Quality System (VQS)
+Copyright 2026 Jakub Holasek
+
+Portions of vqs/policy.py, vqs/evidence.py and vqs/pbir.py were adapted from
+PBIPDocumenter (https://github.com/analienx/pbidocumenter), specifically its
+Visual Quality System and quality-gate implementation in draft PR #12,
+prototype commit 99ae076. This extraction changes the Python package layout,
+removes PBIPDocumenter-specific imports, adds stricter portable CLI inputs,
+and documents its current pre-alpha limitations. The source project carries
+Apache License 2.0; see the LICENSE file in this repository.
+
+External projects mentioned in documentation (Fab Inspector, Draco 2, Power BI
+Desktop Bridge CLI, Microsoft's authoring and modeling tools) are NOT vendored
+or included as binaries in this repository. Their own license terms, trademarks
+and optional runtime requirements remain with their respective authors.

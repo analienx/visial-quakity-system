@@ -1,0 +1,92 @@
+# VQS acceptance matrix — tests before claims
+
+**Scope:** first independent Power BI Desktop + rendered Word/DOCX release. References: [program](IMPLEMENTATION_PROGRAM.md), [agent/ledger protocol](LEDGER_AND_AGENT_PROTOCOL.md), [work packages](../roadmap/work_packages.json). **All test cases below are planned requirements**; the initial planning commit is not evidence that any of them passed. Test fixtures must be created before repair implementation; do not measure only a model's approval score.
+
+## 1. Gate definitions and result semantics
+
+`G0 source/contract/runtime`: correct complete PBIR/DOCX identity, schema, hashes, capabilities and evidence storage. `G1 actual data/renderer readiness`: Power BI model really populated and queryable at recorded filters/role; DOCX backend/version/fonts valid. `G2 design evidence`: quantitative rules and independently reviewed real render agree or conflicts remain explicit. `G3 repair safety`: typed allowlisted change in isolated candidate, exact source diff and rollback. `G4 same-task regression`: same question/answer/filter scope, all categories/neighbor visuals and supported interactions retain correctness on fresh Desktop render. `G5 all-page Word/document consistency`: validated OOXML, real pagination in declared backend, every page inspected and embedded figures traced to current report source. `G6 independent acceptance`: two unrelated PBIPs + generated DOCX + negative corpus completed, verifier not same editor, owner expressly approves promotion.
+
+For any mandatory criterion: `pass` requires directly relevant current evidence; `fail` means a demonstrated violation; `blocked` means environment/capability/required data prevents testing; `not_run` has no evidence; `not_applicable` needs stated legitimate reason. `unknown` is a diagnosis state, not a release verdict. Mandatory `blocked/not_run/unknown` precludes G6 approval; optional unsupported features appear in feature matrix and must not be marketed as tested. A static unit-test pass cannot satisfy a Desktop render or Word pagination gate.
+
+## 2. Portable contracts, ledger and orchestration (WP-00..02)
+
+| Test ID | Stimulus / fixture | Expected observable result | Gate |
+| --- | --- | --- | --- |
+| CORE-01 | PBIR and DOCX artifacts with distinct source revisions | stable typed surface-specific IDs, hashes and provenance; no collisions | G0 |
+| CORE-02 | Source changed after image/review; image hash matches old revision | stale image/review rejected, not green | G0,G2 |
+| CORE-03 | Two agents claim same artifact or Desktop PID | second claim refused/queued, no cross-report capture | G0 |
+| CORE-04 | Kill runner between event write and index commit | run replay preserves previous events; incomplete attempt becomes blocked | G0 |
+| CORE-05 | Missing capability, timeout, unsupported major schema | explicit blocked with missing capability and rerun action | G0 |
+| CORE-06 | Same model edits and approves its own candidate | independent reviewer requirement fails | G6 |
+| CORE-07 | Raw evidence contains secret, real data screenshot, username or cache | pre-publication leak check blocks commit/issue attachment | G0 |
+| CORE-08 | Old `vqs inventory` and request-review usage | contract upgrade preserves documented existing behavior or documents migration with tests | G0 |
+| CORE-09 | Issue marked closed, tests failed, no evidence manifest | ledger cannot become verified by issue state alone | G0,G6 |
+
+## 3. Power BI real data and source facts (WP-03,05)
+
+| Test ID | Stimulus / fixture | Expected observable result | Gate |
+| --- | --- | --- | --- |
+| PBI-01 | Scratch PBIP opens without `cache.abf`, visuals blank | data readiness fails/blocks despite valid PBIR and screenshot | G1 |
+| PBI-02 | Scratch PBIP with cache, fresh refresh fails | first-open populated recorded separately; reproducible refresh is failed/blocked, not silently passed | G1 |
+| PBI-03 | Live DAX returns 1,440 rows for synthetic model but rendered card blank | data/view discrepancy emitted for exact measure/filter and visual; no false pass | G1,G2 |
+| PBI-04 | Two identical report filenames in different Desktop PIDs | exact PID + canonical path required; wrong target fails | G0,G1 |
+| PBI-05 | Unsaved Desktop state or external PBIR edits while open | saved-state/source check blocks certification; explicit reload/reopen requirement | G0 |
+| PBI-06 | Scale-2 screenshot viewport differs from scaled scale-1 coordinates | entire canvas includes right slicer and table; invalid crop fails calibration | G2 |
+| PBI-07 | Page count/order or PNG hash differs from capture manifest | stale/incomplete render rejected for whole-report gate | G0,G2 |
+| PBI-08 | Filter/role differs between DAX oracle and report view | answer comparison blocked or re-executed under equal data scope; not directly compared | G1,G4 |
+| PBI-09 | Unknown effective theme property or dynamic conditional color | provenance `unknown` or measured rendered observation, never invented theme literal | G2 |
+| PBI-10 | Structurally valid PBIR rejected by Desktop on open | candidate fails acceptance regardless of schema-only tests | G1,G4 |
+
+## 4. Design and analytical truth (WP-06,07,10)
+
+| Test ID | Stimulus / fixture | Expected observable result | Gate |
+| --- | --- | --- | --- |
+| DES-01 | Numeric X-axis values distinct but both format as `10%` | verified distinctness defect with actual values and formatted labels; not fabricated from pixels alone | G2 |
+| DES-02 | Five categories in scrollable plot, four visible | category visibility defect when all five required, before/after count checked | G2,G4 |
+| DES-03 | Proper large-text/small-text/essential-mark contrast vs deficient variants | resolved foreground/background/alpha checked with appropriate thresholds and applicability; unknown style does not pass | G2 |
+| DES-04 | Positive value green on page A, same state red on page B without declared semantic reason | cross-page semantic-color inconsistency localized; brand/profile overrides respected | G2 |
+| DES-05 | Plausible-looking bar with misleading baseline, units or denominator | semantic/encoding finding using real underlying measure and filter | G1,G2 |
+| DES-06 | Aesthetic reviewer alleges slicer clipped but full-canvas render shows fully visible | unsupported reviewer claim contested/rejected; no unjustified PBIR edit | G2 |
+| DES-07 | Scatter transformed to ranked bar while user story requires correlation | plan rejected/needs owner intent approval; not treated as cosmetic success | G3,G4 |
+| DES-08 | No date/target/causal evidence, automatic story generator proposes trend/target/causal claim | corresponding story not applicable/needs clarification; never fabricate metric/causation | G1,G4 |
+| DES-09 | Equivalent source answer but different RLS, period or category filter | apparent equality cannot pass question oracle without same scope | G4 |
+| DES-10 | No configured image-capable provider or no opt-in for private screenshot upload | perceptual mandatory gate blocked; no substitution of text-only reviewer | G2 |
+
+## 5. Repair and no-regression (WP-09,10,11)
+
+| Test ID | Stimulus / fixture | Expected observable result | Gate |
+| --- | --- | --- | --- |
+| FIX-01 | Allowed theme/axis change in disposable PBIP | exact approved property changed, source diff/rollback recorded, original byte-identical | G3 |
+| FIX-02 | AI repair plan tries to run shell command or mutate unrelated DAX/RLS | allowlist rejects plan before execution | G3 |
+| FIX-03 | Resize chart resolves duplicated tick but crops the adjacent action table | re-render whole page detects regression and refuses candidate | G4 |
+| FIX-04 | Chart conversion eliminates original defect but hides fifth brand in scroll | category visibility oracle fails; candidate rejected | G4 |
+| FIX-05 | Change removes defect but alters data fields/filter/answer | same-question oracle fails; require explicit approved semantic change | G4 |
+| FIX-06 | Visual still references old source screenshot after edit | capture hash mismatch invalidates prior review; regenerate crops every iteration | G2,G4 |
+| FIX-07 | Three repair retries all fail | bounded run terminal fail/blocked with full attempt history, no auto-approval | G4 |
+| FIX-08 | Attempt to write to original PBIP or promote without owner approval | write guard blocks and original digest unchanged | G3,G6 |
+| FIX-09 | Two independent PBIPs with different chart/data/layout | same typed repair API works when supported; unsupported feature handled explicitly | G4,G6 |
+
+## 6. Word and cross-artifact truth (WP-04,08,11)
+
+| Test ID | Stimulus / fixture | Expected observable result | Gate |
+| --- | --- | --- | --- |
+| DOC-01 | DOCX OOXML valid but last heading orphaned on page | actual page renderer catches; structure-only pass insufficient | G5 |
+| DOC-02 | Table header splits from data row or across section break | report page+object location; constrained repair rerenders every affected page | G5 |
+| DOC-03 | Embedded report image old, report PBIR recently repaired | figure hash/source provenance mismatch; mandatory cross-artifact fail | G5 |
+| DOC-04 | Figure/caption uses wrong measure or units | expected report question/metric comparator fails | G1,G5 |
+| DOC-05 | Missing font changes page count or creates clipping | backend/font environment recorded; render blocked/failed for intended target | G5 |
+| DOC-06 | Same DOCX paginates differently in LibreOffice and interactive Word | explicit backend compatibility finding; do not claim Word-exact acceptance from LibreOffice output | G5 |
+| DOC-07 | Rendered PDF contains blank/duplicate/missing page | page inventory mismatch fails | G5 |
+| DOC-08 | One paragraph/style repair fixes a widow but creates a near-empty next page | independent whole-document re-review rejects regression | G5 |
+| DOC-09 | Document generator has no associated current report revision | report-consistency mandatory gate blocked; standalone DOCX gate can remain separately assessed | G5 |
+| DOC-10 | User DOCX contains macros or external linked resources | process under restricted policy, reject unsafe active content/external fetch unless expressly approved | G0,G5 |
+
+## 7. Release acceptance: what independent verifier must hand back
+
+Evidence set for **each** of the two unrelated PBIPs: source/ref digest and report open path/PID, model definition+authorized data scope and live answer samples, first-open+refresh assessment, all-page native render inventory and calibration, actual design findings with source refs, candidate source diff, fresh all-page/crop revision, unaffected neighbor/category coverage, supported user-task answers and limitations, negative tests, reviewer/editor separation, structured pass/fail/blocked matrix. **No raw private sample data should be committed to Git.**
+
+Evidence set for **each** generated DOCX: exact DOCX hash, renderer/locale/font inventory, actual page count and all-page PNG hashes, OOXML sections/style/figure refs, linked report image source hashes, paginated defects and narrow repair diff, final all-page rerender, independently inspected selected page images plus programmatic all-page checks, target-renderer compatibility limitations.
+
+Before closing [#16](https://github.com/analienx/visual-quality-system/issues/16), independent verifier must answer: (1) Are all mandatory gates passing on pinned source versions? (2) Which user tasks and interaction states were genuinely exercised? (3) Did the actual report/Word document improve without changed answers/figures? (4) Is any unsupported capability presented as if tested? (5) Can results be reproduced in a clean permitted environment? (6) Are data/image privacy, rollback and owner promotion requirements met?
+
+A failure remains a failure until a new explicit run passes. An untested interaction can be declared out of first-release scope only in the owner-approved capability matrix; it cannot silently receive a pass.

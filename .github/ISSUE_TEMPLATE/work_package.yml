@@ -1,0 +1,78 @@
+name: "VQS implementation work package"
+description: "Bounded, evidence-gated Power BI or Word implementation task; link to program #4 and ledger"
+title: "WP-XX [Sx] Short independently testable deliverable"
+body:
+  - type: markdown
+    attributes:
+      value: "Read docs/IMPLEMENTATION_PROGRAM.md, docs/LEDGER_AND_AGENT_PROTOCOL.md and AGENTS.md first. Opening an issue does not mark any capability implemented."
+  - type: input
+    id: id
+    attributes:
+      label: "Stable WP ID and phase"
+      description: "Example WP-14 / S6; search roadmap/work_packages.json for duplication"
+      placeholder: "WP-14 / S6"
+    validations:
+      required: true
+  - type: dropdown
+    id: surface
+    attributes:
+      label: "Surface"
+      options:
+        - "Shared core / runtime"
+        - "Power BI Desktop"
+        - "Word / DOCX"
+        - "Cross-artifact acceptance"
+        - "Fabric Apps / Rayfin (deferred)"
+    validations:
+      required: true
+  - type: textarea
+    id: purpose
+    attributes:
+      label: "Specific observable outcome and non-goals"
+      placeholder: "One concrete user-facing or verifiable behavior, what this issue will NOT implement"
+    validations:
+      required: true
+  - type: textarea
+    id: deps
+    attributes:
+      label: "Hard blockers and upstream contract versions"
+      placeholder: "WP-01 verified @sha; references to blocked-by issues; explicit first runnable condition"
+    validations:
+      required: true
+  - type: textarea
+    id: ownership
+    attributes:
+      label: "Owner agent lane, editable paths and exclusive resources"
+      placeholder: "vqs/...; tests/...; read-only contracts; exact GUI/PID host lease if needed; independent verifier"
+    validations:
+      required: true
+  - type: textarea
+    id: interface
+    attributes:
+      label: "Inputs, outputs and provenance contract"
+      placeholder: "Typed input/output; schema version; source/data/render hashes; opt-in secrets/image policy"
+    validations:
+      required: true
+  - type: textarea
+    id: tests
+    attributes:
+      label: "Positive and negative test matrix"
+      placeholder: "Real/synthetic fixture, expected pass, expected fail, expected blocked, exact verification command"
+    validations:
+      required: true
+  - type: textarea
+    id: proof
+    attributes:
+      label: "Independent acceptance, evidence and rollback"
+      placeholder: "Raw run evidence IDs; independent reviewer; candidate source diff; no data leakage; rollback"
+    validations:
+      required: true
+  - type: checkboxes
+    id: safety
+    attributes:
+      label: "Dispatch preflight"
+      options:
+        - label: "I searched for an existing issue and updated the work-package dependency DAG as needed"
+          required: true
+        - label: "This work will not be called verified without tests and independent evidence on the matching source revision"
+          required: true

@@ -1,72 +1,96 @@
-# Architecture and delivery plan
+# VQS architecture: a verifiable decision-quality system
 
-**Status:** target architecture; individual prototype elements live in PBIPDocumenter PR #12. This document deliberately separates existing behavior from designed interfaces. No third-party engine integration or complete second-project test has been completed in this new repository.
+**Status:** proposed target architecture with a pre-alpha portable core. The complete Windows/vision/repair prototype remains in PBIPDocumenter PR #12. This document is an implementation contract, **not a list of capabilities already delivered**.
 
-## Core principle
+## Design principle and ownership
 
-VQS must not consist of `take screenshot → ask an LLM whether it looks good`. Its core is a versioned, evidence-backed *visual fact model* assembled from report definition, authorized real data, formal rules and verified rendering. The vision reviewer handles interpretive properties that cannot be measured reliably. A repair plan is valid only if source and data checks support its diagnosis, and only a fresh whole-page render can verify its perceptual result.
+Use a **modular monolith with strict typed ports**, not microservices, separate AI agents for every rule, or a monolithic fork of another analyzer. Ship one Python package/CLI, an optional Windows Power BI executor and opt-in provider adapters. VQS owns the *question/decision contract, normalized evidence, rule decisions, conflict adjudication, repair safety and before/after acceptance*. Upstream tools and LLMs are replaceable capabilities, never the source of the final green status. Keep the artifact's source and data local by default.
+
+**P0 user experience:** `vqs improve path/to/report.pbip --profile profile.yaml --candidate ./output` is a **target API, not a currently implemented command**. It should inspect a real report, identify exact visual-level defects, propose and apply safe style/chart fixes on a disposable copy, open and recapture in Desktop, and return the modified candidate plus actionable pass/fail/blocked evidence. Start with existing visuals, not unconstrained generation.
 
 ```text
-consumer (PBIPDocumenter, CLI, CI, other report generator)
-  → import artifact + pinned quality profile + security policy
-  → artifact adapter: Power BI PBIR/TMDL | DOCX/OOXML | future plugin
-  → normalized page/visual/measure/format/geometry FACT GRAPH
-      ↳ static PBIR/schema validator; theme/effective-format resolver
-      ↳ semantic model query adapter (opt-in, read-only, scoped)
-      ↳ formal policy engine (native rules and optional Fab Inspector / Draco 2)
-  → render adapter (exact Desktop PID/path + saved state | DOCX pager)
-  → artifact-bound visual evidence and independent reviewer
-  → evidence adjudicator (measured fact / observed symptom / inferred cause / unknown)
-  → issue registry → safe repair planner → isolated repair executor
-  → full structural+data+render regression → independent re-review
-  → pass | fail | blocked + JSON/SARIF/HTML evidence + source digests
+Consumer: standalone CLI / PBIPDocumenter / CI / later UI
+    │
+    ▼
+Run controller: artifact identity, profile, permissions, task budget, durable run log
+    │
+    ├─ Intent contract: supplied persona + task + design profile, otherwise conditional story discovery
+    │    └─ question/decision graph: what, compared with what, when, where/who,
+    │       how, why-hypotheses, so what, uncertainty, omissions, scenario, next action
+    ├─ Artifact facts: PBIR/schema, TMDL/measure lineage, effective themes and visual overrides
+    ├─ Authorized data evidence: scoped read-only model queries, refresh/RLS context, distributions
+    ├─ Rule engines: native design + semantic/question tests; optional Fab Inspector / Draco adapter
+    ├─ Windows render port: exact saved PBIP/Desktop PID → full canvas and visual crops
+    ├─ Independent vision port: page + crop + structured facts → observed symptoms only
+    │
+    ▼
+Evidence adjudicator: verified fact vs observed symptom vs hypothesis vs unknown
+    │
+    ▼
+Finding registry: issue → question/visual/source/filter → repair option → verification test
+    │
+    ▼
+Independent planner → typed allowlist validator → isolated PBIR/Word repair executor
+    │
+    ▼
+Full regression: schema + data/query + style + page render + interaction/task + re-review
+    │
+    └─ pass / fail / blocked + durable JSON/SARIF/HTML and source-bound candidate/diff
 ```
 
-## Package boundaries
+## Ports and packages
 
-- `vqs.core`: artifact identities, content digests, policy profiles, rule evaluation, findings, severity and applicability, evidence provenance, fail-closed release gate. No Power BI, model vendor, network or GUI dependency.
-- `vqs.powerbi`: PBIR reader and versioned schema adapter, page/visual inventory, semantic-model/field roles, filter context, effective themes, geometry, chart-intent contract, quantitative axis/label/cardinality/encoding rules and visual IDs. Read-only by default.
-- `vqs.powerbi.integrations`: Microsoft metadata/validation CLI, Desktop Bridge (Windows, exact PID), a read-only semantic-model MCP interface, and optional Fab Inspector CLI JSON normalization. Each adapter declares capabilities, version, provenance and failure modes; no blind or mandatory downloads.
-- `vqs.design`: neutral chart/task specification, measured-design rules, contrast/typography/spacing computations, optional Draco 2 mapping. A rule must include data requirements and say `unknown` when evidence is absent.
-- `vqs.vision`: provider-agnostic opt-in independent reviewer receiving verified page, crops and structured facts. It reports observable symptoms, supported locations and repair suggestions separately from root-cause hypotheses. No default cloud upload.
-- `vqs.repair`: allowlisted source changes in a clean temporary worktree, safety policy, plan validation, rollback, regression and review-round history. A model cannot execute arbitrary shell/JSONPath or approve its own changes.
-- `vqs.document`: OOXML facts, style/table/figure/page constraints, rendered pagination and cross-document figure provenance. This remains a separate adapter, not Power BI-specific code buried in the engine.
-- `vqs.cli` / `vqs.ci`: inspect, render, review, plan, repair/iterate, verify, report and machine-readable exit codes. CI can run offline static checks; Desktop-only checks require a permitted Windows executor. No false green when that runner is unavailable.
+| Package / port | Responsibility and boundary |
+| --- | --- |
+| `vqs.core` | Stable artifact/run identities, evidence schema, applicability (`pass/fail/unknown/blocked`), rule provenance, security policy, test assertions and final gate. No Power BI, GUI, network or model dependency. |
+| `vqs.intent` (planned) | Question ontology, explicit persona/decision/expected-answer contracts, conditional default story generator, domain packs and mapping to page/visual/interaction IDs. No invented target, geography, denominator or causal interpretation. |
+| `vqs.powerbi` | PBIR page/visual/query/interaction inventory, effective theme resolution, semantic metadata, field-role semantics, exact source fingerprint; read-only by default. Dedicated versioned authoring port for supported PBIR edits. |
+| `vqs.data` (planned) | Authorized read-only model query provider and test fixtures. Record dataset and refresh identity, filter context, date/population scope, RLS, units, sample/uncertainty and query results. No query access means `unknown`, not a made-up result. |
+| `vqs.design` | Measured style and chart rules: palette role/semantic reuse, text and mark contrast, typography, label budget, category/axis precision, chart/task suitability, encoding truth, spacing and alignment. Aesthetic/brand fit is a structured independent review with profile and explicit evidence. |
+| `vqs.integrations` (planned) | Version/capability-probed, opt-in adapters for Fab Inspector, Microsoft authoring/schema tools, semantic-model query, Desktop Bridge and optional Draco 2. Normalize tool output; do not treat an upstream pass as global approval. |
+| `vqs.render` (planned port) | Windows-only exact Desktop PID/path and saved-state validation, first-open data preflight, native capture and independently verified complete canvas/viewport at each scale; source-hashed crops. Document paginated renderer as separate plugin. |
+| `vqs.review` (planned port) | Configurable image-capable multimodal reviewer for perceptual hierarchy, overall feeling, palettes as actually rendered, misleading presentation and journey affordances. It sees whole page and focused visuals with factual context. Separate reviewer ID/provider from fixer, explicit image-transfer consent. |
+| `vqs.repair` (planned port) | Structured repair plan with expected semantic effect, narrowly typed PBIR/theme mutations or validated template instantiation; safe isolated execution, diff, rollback, iteration limit and promotion boundary. AI planners cannot issue arbitrary file operations or self-approve. |
+| `vqs.journey` (planned) | Task benchmark against expected query results, visual and interaction routes (filters, drillthrough, back navigation), ambiguity and available AI-answer parity. Human study required before claiming measured end-user usability gains. |
+| `vqs.document` (planned) | OOXML typography and figure/measure lineage; every page's render and page-break checks, tied to source report revision. |
+| `vqs.cli` | Headless inspect/review/improve/verify commands and machine-readable outputs. Offline static passes are not equivalent to an end-to-end quality pass. |
 
-## Evidence and diagnostic contract
+## Canonical contracts and durable run bundle
 
-A `finding` contains `schema_version`, `rule_id`, `artifact_kind`, `source_digest`, `page_id`, `visual_id`, `category`, `severity`, `status`, `evidence[]`, `symptom`, `hypotheses[]`, `verified_cause`, `repair_options[]`, `verification[]` and `reviewer_id` where applicable. `evidence` elements include method (`PBIR`, `TMDL`, `DAX`, `Desktop rendering`, `OOXML`, `independent visual review`), object locator, captured value, data scope and hash/timestamp. `verified_cause` cannot be populated solely by a model's interpretation of a screenshot. Data-query provenance includes effective filters, units, date range and table/measure source; inaccessible or stale data blocks semantic approval.
+`IntentContract`: `schema_version, persona, decision, question_id, question, answer_type, required_metrics, dimension_roles, comparison, population, period, supported_explanation_level, expected_evidence, allowed_interactions, next_action, provenance, applicability`. Supplied user stories override inferred defaults. A generated story is only a *candidate* until its required fields, measure meanings and model queries are checked; unsupported stories are skipped with a reason. Default families are conditional, **not mandatory chart counts**.
 
-`pass` = all mandatory applicable checks complete on current source and output; `fail` = validated outstanding violation; `blocked` = data unavailable, invalid capture, unknown schema, unconfigured provider, reviewer disagreement unresolved, unsaved Desktop state, timeout, unsafe repair or stale output. All three states must remain distinguishable in JSON and CLI exit code. User-defined advisory exceptions require explicit rationale and expiry; mandatory data readiness and source hashes cannot be waived by an LLM.
+`VisualFact`: report/page/visual IDs, visual type, data roles, explicit and inherited effective formatting (with provenance), layout, query/filter/RLS context, populated-data status, report source digest, page/image/crop digests and any unsupported/unknown properties. Do not conflate an explicitly configured property with its actual rendered value.
 
-## Example rule pipeline: repeated X-axis ticks
+`Finding`: versioned rule ID, story/question ID when applicable, visual/page IDs, evidence object IDs and methods, data scope, measurable violation or visibly located symptom, severity, confidence/uncertainty, alternative explanations, verified cause *only when verified*, safe repair candidates, test oracles and regression scope. Keep direct facts, hypotheses and subjective assessment separate. No overall unexplained aesthetic score.
 
-Read visual query role + measure numeric type and format; obtain the **actual** data distribution and authorized filter context; extract/estimate candidate domain and Power BI axis configuration. An offline heuristic can report a `potential_duplicate_ticks` risk but must **not** fabricate actual rendered tick coordinates/values. Analyze the fresh chart crop for displayed ticks, relate to the visual ID and compare distinct numeric positions with text. A confirmed mismatch yields `axis.display_values_not_distinct`; candidate repairs include changing precision, axis interval/size or visual type, subject to semantic and chart-intent checks. After change, verify the new data-bound chart still displays every required category and the adjacent table remains complete. Do not infer the underlying exact tick values solely from pixels.
+`RunBundle`: input source digest and dataset/refresh identity, intent+design profile revision, tool/model versions, all invoked capabilities and access policy, findings, capture/crop hashes, candidate git diff, task-oracle results, independently sourced before/after evidence and `pass|fail|blocked`. Invalidated source, missing images/data, untested interaction or provider disagreement must not silently pass. JSON first; SARIF/HTML optional derived views.
 
-## Example rule pipeline: unsuitable chart
+## Design and data evaluation: two complementary lanes
 
-Take an explicit analytical task (ranking, trend, part-to-whole, distribution, correlation or detailed lookup), roles and aggregation, cardinality, ranges and variation. Validate baseline semantics and generate feasible chart candidates. Use Draco 2 only for supported neutral representations; preserve Power BI-only semantics as explicit extensions or `unsupported`. Have an independent reviewer evaluate hierarchy and communication, but require the planner to justify any transformation using source/data. A scatter→bar replacement changes the *question* from correlation to ranking, so obtain an explicit business-intent declaration or record that trade-off rather than treating the conversion as an automatic cosmetic improvement.
+**Measured lane:** detect bounds, alignment, palette role collisions, non-distinct labels, insufficient measured contrast, inappropriate zero baseline and insufficient category/label space using *real effective properties and scoped data*. Check `compared with what`, units, denominators, incomplete periods, materiality and uncertainty at question level; test against authoritative read-only DAX or domain-specific reference oracles. Without exact tick positions or effective formatting, report a risk/unknown, not a fabricated finding.
 
-## Rendering and security
+**Perceptual lane:** assess hierarchy, overall style/brand fit, reading order, clutter, meaningful use of color, visible clipping and cognitive effort from whole-page and chart renders. The reviewer also sees the intent graph and measured evidence, but may not infer specific DAX causes from pixels. Disagreements trigger independent adjudication. Color-blind or small-screen review can augment but not replace measurable contrast and semantic-color tests.
 
-Open a disposable PBIP copy and select the exact Desktop instance by PID and canonical path. Require saved state and page inventory agreement. Check actual native image dimensions and independently calibrated entire-canvas boundaries at every capture scale, with visual anchors or a measured viewport—not aspect ratio alone. Bind page PNGs and all derived crops to the exact source digest and instance state. An ABF cache is not proof of refresh reproducibility; first-open data and bulk refresh are separately verified. Do not commit report business data, cached credentials, user-local settings, screenshots or calibration by default. Cloud-model image/data transfer requires opt-in and redaction policy.
+The two lanes meet in the finding registry; a pleasing screenshot cannot override a false answer, missing cohort, stale source or broken interaction. A formally valid chart cannot pass when it is unreadable at target viewport.
 
-DOCX adapter reads styles and runs, table structure, section geometry, figure references, and independent rendered page count; it validates each page against document hash and relevant report screenshot hash. Page count and OOXML validity are not aesthetic approval.
+## Authoring and verification are different trust domains
 
-## Build vs integrate
+Use existing Microsoft authoring tooling and optional configurable repair model to **propose** source-level designs; use allowlisted, version-pinned PBIR transformations and validated visual templates to **implement** them only in a disposable clean candidate. Verify references, filters, RLS, category visibility, measure correctness and adjacent visual layout before promoting. A scatter-to-bar change may switch the analytical task from correlation to ranking; require a matching intent contract rather than treating it as a universal cosmetic fix.
 
-Use optional Fab Inspector for existing declarative PBIR governance and map its findings to native IDs. Use Microsoft's report-authoring CLI for current schema and visual-format capability discovery; do not hardcode undocumented formatting properties. Use Microsoft's Bridge for capture and Modeling MCP / a supported semantic query client for authorized values. Add Draco 2 only behind a neutral, tested spec adapter. In every case pin versions and fail explicitly on unsupported capabilities. See [research](RESEARCH.md) for alternatives, upstream limitations, licenses and links.
+Use an **independent** verification actor, deterministic oracles and a fresh Desktop render to judge the candidate. A model that authored a chart cannot be the sole authority approving it. For a claim of improvement, compare the same questions and expected answers before and after, ensure no lost interaction or data segment, and resolve the original issue plus newly introduced defects. If human task speed or comprehension is asserted, test representative users rather than claiming AI simulation proves it.
 
-## Extraction plan and acceptance
+## Integrations: build vs reuse
 
-1. **Bootstrap (current):** independent README, architecture, research and provenance. Do not move Contoso caches or generated screenshots. Keep PBIPDocumenter PR #12 unchanged.
-2. **Portable core:** port versioned policy, SHA-bound image/review evidence, structured findings and pure PBIR visual inventories. Remove `pbip_documenter` imports, add a Python package, CLI, tests and a `PBIPDocumenter` adapter without hidden source paths.
-3. **Quantitative design engine:** implement genuine data-aware rules for axis formatting, density and chart/role compatibility. Test with fixtures that distinguish potential risks, measured violations, unknowns and reviewer hallucinations.
-4. **Native rendering:** adopt exact-instance Desktop Bridge, full-canvas verification, data-loaded preflight and independent high-resolution review. Test against a disposable copy and an unsaved/incorrect-instance matrix.
-5. **Repair:** port conservative recipes and add transactional chart/axis/title/layout transformations, then prove defect resolution and absence of page-level regressions using fresh captures.
-6. **Independent acceptance:** run on at least two unrelated PBIR projects (including a non-Contoso fixture), compare with Fab Inspector, verify user-specified design-policy behavior, then test real Word pagination and downstream PBIPDocumenter Word output.
-7. **Adoption:** publish a pinned VQS release, update PBIPDocumenter to call the package/CLI, keep original provenance and migration notes, and retire duplicated prototype code only after equivalent or higher independent test coverage.
+Consume Fab Inspector as an optional external rule engine and map its governance findings into VQS IDs. Use Microsoft PBIR/report-authoring/schema tools and Desktop Bridge for supported authoring, validity and real capture; do **not** assume the live Bridge exposes every per-visual property or actual numeric result. Use a separate authorized semantic query provider for data. Test a neutral chart-task adapter before invoking Draco 2; maintain explicit unsupported Power BI visual/interaction capabilities. Pin versions, discover supported operations and respect third-party licenses. External tools are **providers, not the product definition**.
 
-### Non-goals at extraction time
+The minimal runtime is **one portable Python process with optional child processes** and a Windows Desktop execution port; no Kubernetes, message broker, database or full agent mesh needed for the first release. Persist each run to a local artifact directory, deterministic JSON and optional SQLite registry for replay. Remote rendering and CI workers can be added behind the same typed ports later. Provider credentials and report images stay out of the public repository. Cloud image/data submission requires explicit permission and minimization.
 
-No autonomous approval by a single LLM; no arbitrary source edits proposed in free text; no project-specific chart aesthetic score; no assumed Power BI per-visual live API; no mandatory third-party account or remote image upload; no claims of general accessibility certification; no automatic upload of real model data to a public repo.
+## Practical staged delivery and acceptance
+
+1. **P0 — real report repair:** stabilize portable evidence/rule schemas; integrate Fab Inspector optionally, effective color/theme rules, chart/context rules and Windows capture; port constrained repair. On two unrelated real PBIPs, fix a true chart/style defect in an isolated report, reopen Desktop and verify readable populated pages, exact answers, all categories and unaffected neighboring visuals. No claim of autonomy until all steps run unattended within bounded retries.
+2. **P1 — question and decision contracts:** infer only supported default stories; map existing and missing question coverage; add baseline, materiality, uncertainty and provenance oracles with explicit ambiguous/unknown outcomes. Test with two domain fixtures and adversarially ambiguous measures.
+3. **P2 — interactions and AI answers:** support scripted filter/drillthrough/return checks and compare available AI replies to the same question under identical context; report answer disagreement without auto-selecting a winner. Test human task performance separately when claiming end-user benefit.
+4. **P3 — domain packs and continuous quality:** domain questions, validated predictive eligibility, drift/change-triggered invalidation of previously approved answers and snapshots; optionally support DOCX paginated acceptance as its own tested adapter milestone.
+5. **Extraction/adoption:** only after equivalent standalone tests, release a pinned VQS package, make PBIPDocumenter a consumer, and retire duplicate prototype code without merging unverified design approval.
+
+**Current executable boundary:** the standalone repository has inventory, policy, provenance and limited measured-rule primitives. `vqs improve`, full question mapping, independent journey verification and all-port integration are **not implemented**. See [README](../README.md), [default stories](DEFAULT_STORIES_AND_AUTOMATED_DESIGN.md), [integration strategy](INTEGRATION_STRATEGY.md), and [research](RESEARCH.md).

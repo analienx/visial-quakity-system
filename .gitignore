@@ -12,6 +12,9 @@ dist/
 artifacts/
 renders/
 visual-crops/
+runs/
+private/
+.local-fixtures/
 *.abf
 *.pbix
 *.pbit

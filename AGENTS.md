@@ -1,0 +1,25 @@
+# AGENTS.md — required execution contract for VQS agents and subagents
+
+This repository's current work plan is [docs/IMPLEMENTATION_PROGRAM.md](docs/IMPLEMENTATION_PROGRAM.md), machine ledger [roadmap/work_packages.json](roadmap/work_packages.json), current snapshot [roadmap/STATUS.md](roadmap/STATUS.md), and [docs/LEDGER_AND_AGENT_PROTOCOL.md](docs/LEDGER_AND_AGENT_PROTOCOL.md). Follow the bounded GitHub WP issue, not a previous assistant's summary or a model's confidence in its own output. Power BI Desktop and Word are first release; [Fabric Apps #18](https://github.com/analienx/visual-quality-system/issues/18) is deferred.
+
+## Before editing
+
+1. Read the targeted WP issue and required upstream contracts/evidence; verify base SHA, branch, CLI versions, source/data privacy and hard dependencies. Check `git status` for user changes and untracked evidence; never discard or overwrite them. Do not infer a local path or run proof from a prior conversation.
+2. Receive integrator-issued `TaskEnvelope` listing editable/read-only paths, fixture IDs, max retries, accepted tool/model and cloud-data permissions, acceptance and independent verifier. Claim one issue with a dedicated `work/wpNN-...` branch and Git worktree. Different agents do **not** edit the same checkout, schema or Desktop PID at the same time. If a shared schema must change, raise an interface-change request and wait for contract review.
+3. Run the baseline relevant tests **before** modifications; report any existing failures instead of claiming they were introduced or secretly fixing unrelated files. Validate tests in a clean local environment; avoid burning hosted Actions minutes unnecessarily.
+
+## Execute within boundaries
+
+- Default command modes are `review` read-only, `propose` diff-only, `repair` isolated candidate only; `promote`, publishing or merging requires explicit owner authorization. Do not patch the canonical PBIPDocumenter or original report; keep its [draft PR #12](https://github.com/analienx/pbidocumenter/pull/12) intact until standalone parity and user approval.
+- Never commit ABF caches, personal paths, credentials, user/customer report data or screenshots, bearer tokens, provider auth JSON or third-party executable blobs to the public repo. Real run evidence stays under ignored private `runs/` or an approved secure artifact store. Cloud data/images require per-run explicit permission.
+- For Power BI: verify exact report path/PID/saved state, actual source digest and loaded DAX data; native render must include the *entire* canvas at that scale. Structural PBIR validity or a screenshot hash is not design/data approval. Repair preserves fields, units, filters and categories unless a source-grounded task change is approved. Re-render entire affected page and compare neighbors and answers.
+- For Word: validate OOXML **and** every actually paginated page with backend/fonts/locale recorded. Do not use unsupported non-interactive Word COM for server-style automation or call LibreOffice pagination identical to Word without evidence. Each embedded chart/figure must trace to the current report source.
+- Never have the same model/agent author and independently approve its own patch. A text-only model cannot certify pixels. Missing data, timeout, unsupported driver, stale captures and model disagreement are blocked/unknown, **never pass**. Tests must include deliberate failures/negative controls.
+
+## Handoff and status reporting
+
+Each PR references the WP issue, exact base/head source revisions, owned paths, schema input/output, change/rollback summary, test counts including failures and skips, raw evidence IDs (not private file payloads), current component state, detected regressions and next action. An independent verifier reproduces relevant tests and inspects actual rendered evidence; only the integrator updates a work package from review to verified with linked merged commit, environment and proof. An issue closed or a model's 'done' message alone does not advance the ledger.
+
+If blocked, stop only the affected task, keep unsuccessful attempt evidence and post a concise issue update: `blocking condition | exact reproduction | affected gate | safe options | permission or dependency needed | what can run in parallel`. No endless polling, repeated blind GUI clicks or unauthorized preview-feature activation. Do not promise background work without a scheduled execution facility.
+
+Read [acceptance matrix](docs/ACCEPTANCE_MATRIX.md) before claiming successful Power BI or Word implementation. New packages must update the ledger DAG, issue template and applicable fixture expectations; no roadmap percentage from unverified checkboxes.

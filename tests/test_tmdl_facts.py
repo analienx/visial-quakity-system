@@ -74,6 +74,64 @@ def test_orphan_declarations_become_issues() -> None:
     assert any(row["rule"] == "orphan_declaration" for row in parsed["issues"])
 
 
+REALWORLD = """/// Sales transaction fact table.
+table 'Fact Sales'
+\tlineageTag: 520533e2-e157-48b8-aaa1-cb539ef62b28
+
+\t/// Total net sales in the current filter context.
+\tmeasure 'Sales Amount' = SUM ( 'Fact Sales'[Net Sales] )
+\t\tformatString: $#,0
+\t\tdisplayFolder: Revenue
+
+\tmeasure 'Margin?' = IF ( [A] = [B], 1, 0 )
+
+\tcolumn 'Sales Order Number'
+\t\tdataType: string
+"""
+
+
+def test_quoted_realworld_declarations_unquote_and_resolve() -> None:
+    parsed = parse_tmdl(REALWORLD)
+    assert parsed["issues"] == []
+    tables = parsed["tables"]
+    assert sorted(tables) == ["Fact Sales"]
+    assert tables["Fact Sales"]["measures"]["Sales Amount"].startswith("SUM")
+    assert tables["Fact Sales"]["measures"]["Margin?"] == "IF ( [A] = [B], 1, 0 )"
+    assert "Sales Order Number" in tables["Fact Sales"]["columns"]
+    assert "formatString" not in tables["Fact Sales"]["measures"]
+    assert "lineageTag" not in tables["Fact Sales"]["measures"]
+    ok = check_bindings([{"query_ref": "Fact Sales.Sales Amount"},
+                         {"query_ref": "Fact Sales.Sales Order Number"}],
+                        parsed)
+    assert [finding["status"] for finding in ok] == ["pass", "pass"]
+
+
+NON_TABLE = """model Model
+\tculture: en-US
+
+relationship factSales_customer
+\tfromColumn: 'Fact Sales'.'Customer Key'
+\ttoColumn: 'Dim Customer'.'Customer Key'
+
+expression pStart = #date(2023, 1, 1)
+
+\tannotation PBI_ResultType = Date
+
+ref table 'Fact Sales'
+"""
+
+
+def test_non_table_objects_are_skipped_not_flagged() -> None:
+    parsed = parse_tmdl(NON_TABLE)
+    assert parsed == {"tables": {}, "issues": []}
+
+
+def test_empty_table_name_is_flagged() -> None:
+    parsed = parse_tmdl("table \n\tcolumn Orphaned\n")
+    assert parsed["tables"] == {}
+    assert [row["rule"] for row in parsed["issues"]] == ["empty_table_name"]
+
+
 def test_out_of_date_source_fails_and_current_passes() -> None:
     assert check_freshness("a" * 64, "a" * 64, "report")["status"] == "pass"
     stale = check_freshness("a" * 64, "b" * 64, "model")

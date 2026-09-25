@@ -12,30 +12,52 @@ from __future__ import annotations
 from pathlib import Path
 
 
+def _unquote(name: str) -> str:
+    """Strip one layer of matching TMDL quotes; doubled-quote escapes kept raw."""
+    if len(name) >= 2 and name[0] == name[-1] and name[0] in ("'", '"'):
+        return name[1:-1]
+    return name
+
+
 def parse_tmdl(text: str) -> dict:
-    """Parse TMDL declarations; malformed lines become issues, never raises."""
+    """Parse TMDL table declarations; malformed lines become issues, never raises.
+
+    Real-world files use quoted identifiers (``table 'Fact Sales'``) and
+    non-table top-level objects (``model``, ``relationship``,
+    ``expression``); quoted names are unquoted for binding comparison and
+    non-table subtrees are skipped, not flagged. Only a ``measure`` or
+    ``column`` line before any top-level object is an orphan.
+    """
     tables: dict[str, dict[str, dict]] = {}
     issues: list[dict] = []
     current: str | None = None
+    seen_top = False
     for lineno, raw in enumerate(text.splitlines(), start=1):
         line = raw.strip()
         if not line or line.startswith("//"):
             continue
         if not raw.startswith((" ", "\t")):
+            seen_top = True
             if line.startswith("table "):
-                current = line[len("table "):].strip()
-                tables.setdefault(current, {"measures": {}, "columns": {}})
+                name = _unquote(line[len("table "):].strip())
+                if not name:
+                    issues.append({"rule": "empty_table_name", "line": lineno})
+                    current = None
+                else:
+                    current = name
+                    tables.setdefault(current, {"measures": {}, "columns": {}})
             else:
                 current = None
             continue
         if current is None:
-            issues.append({"rule": "orphan_declaration", "line": lineno})
+            if not seen_top and line.startswith(("measure ", "column ")):
+                issues.append({"rule": "orphan_declaration", "line": lineno})
             continue
         if line.startswith("measure "):
             name, _, expression = line[len("measure "):].partition("=")
-            tables[current]["measures"][name.strip()] = expression.strip()
+            tables[current]["measures"][_unquote(name.strip())] = expression.strip()
         elif line.startswith("column "):
-            tables[current]["columns"][line[len("column "):].strip()] = ""
+            tables[current]["columns"][_unquote(line[len("column "):].strip())] = ""
     return {"tables": tables, "issues": issues}
 
 

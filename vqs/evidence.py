@@ -54,7 +54,7 @@ def png_size(path: Path) -> tuple[int, int]:
 def load(path: Path) -> dict:
     value = json.loads(path.read_text(encoding="utf-8-sig"))
     if not isinstance(value, dict):
-        raise ValueError(f"Expected a JSON object: {path}")
+        raise TypeError(f"Expected a JSON object: {path}")
     return value
 
 

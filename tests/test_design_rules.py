@@ -1,5 +1,11 @@
 """Measured rules must fail on actual violations, not guessed inputs."""
-from vqs.design_rules import axis_display_distinctness, category_axis_space, text_contrast
+from vqs.design_rules import (
+    axis_display_distinctness,
+    category_axis_space,
+    cross_page_metric_units,
+    palette_semantic_consistency,
+    text_contrast,
+)
 
 
 def test_repeated_percent_labels_do_not_pass() -> None:
@@ -23,3 +29,33 @@ def test_label_density_uses_actual_dimensions() -> None:
     assert category_axis_space([70, 70, 70], 150)["status"] == "fail"
     assert category_axis_space(None, 300)["status"] == "unknown"
     assert category_axis_space([70, 70], None)["status"] == "unknown"
+
+
+def test_undeclared_recoloring_fails_and_overrides_pass() -> None:
+    rows = [
+        {"state": "good", "color": "#00AA00", "page": "A"},
+        {"state": "good", "color": "#CC0000", "page": "B"},
+    ]
+    failed = palette_semantic_consistency(rows)
+    assert failed["status"] == "fail" and len(failed["evidence"]["conflicts"]) == 1
+    assert palette_semantic_consistency(rows, declared_overrides=["good"])["status"] == "pass"
+    assert palette_semantic_consistency([
+        {"state": "good", "color": "#00AA00", "page": "A"},
+        {"state": "good", "color": "#00AA00", "page": "B"},
+    ])["status"] == "pass"
+    assert palette_semantic_consistency(None)["status"] == "unknown"
+    assert palette_semantic_consistency([{"state": "good"}])["status"] == "unknown"
+
+
+def test_changed_units_fail_and_stable_units_pass() -> None:
+    failed = cross_page_metric_units([
+        {"measure": "Revenue", "unit": "USD", "page": "A"},
+        {"measure": "Revenue", "unit": "% of total", "page": "B"},
+    ])
+    assert failed["status"] == "fail"
+    assert failed["evidence"]["conflicts"][0]["measure"] == "Revenue"
+    assert cross_page_metric_units([
+        {"measure": "Revenue", "unit": "USD", "page": "A"},
+        {"measure": "Revenue", "unit": "USD", "page": "B"},
+    ])["status"] == "pass"
+    assert cross_page_metric_units(None)["status"] == "unknown"

@@ -6,7 +6,7 @@ from pathlib import Path
 
 from vqs.evidence import digest, load, review_template, verify_review
 from vqs.pbir import report_context, source_digest
-from vqs.policy import CRITERIA, DOCUMENT, REPORT, REQUIRED
+from vqs.policy import CRITERIA, DOCUMENT, REPORT
 
 
 def test_observation_contract_is_complete() -> None:

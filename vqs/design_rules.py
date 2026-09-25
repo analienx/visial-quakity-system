@@ -88,3 +88,58 @@ def category_axis_space(label_widths_px: Sequence[float] | None,
     return _finding(rule, "pass" if required <= available_width_px else "fail",
                     labels=len(widths), required_px=round(required, 2), available_px=available_width_px,
                     assumptions="All labels visible, horizontal, nonoverlapping, measured at target zoom")
+
+
+def palette_semantic_consistency(
+    assignments: Sequence[dict] | None, declared_overrides: Sequence[str] | None = None,
+) -> dict:
+    """One state must keep one color across pages unless an override is declared.
+
+    Each assignment needs ``state``, ``color`` (resolved opaque literal), and
+    ``page``. DES-04: unexplained cross-page recoloring of the same state fails.
+    """
+    rule = "palette.semantic_consistency"
+    overrides = set(declared_overrides or [])
+    if not assignments:
+        return _finding(rule, "unknown", reason="Measured state-color-page assignments required")
+    by_state: dict[str, dict[str, str]] = {}
+    for item in assignments:
+        if not isinstance(item, dict):
+            return _finding(rule, "unknown", reason="Invalid assignment observation")
+        state, color, page = item.get("state"), item.get("color"), item.get("page")
+        if not all(isinstance(v, str) and v for v in (state, color, page)):
+            return _finding(rule, "unknown", reason="state, color, and page must be nonempty strings")
+        by_state.setdefault(state, {})[color] = page
+    conflicts = [
+        {"state": state, "colors": sorted(pages), "pages": [pages[c] for c in sorted(pages)]}
+        for state, pages in by_state.items()
+        if len(pages) > 1 and state not in overrides
+    ]
+    return _finding(rule, "fail" if conflicts else "pass",
+                    states=len(by_state), conflicts=conflicts,
+                    overrides=sorted(overrides))
+
+
+def cross_page_metric_units(readings: Sequence[dict] | None) -> dict:
+    """One measure must keep one unit across pages (DES-05 encoding truth).
+
+    Each reading needs ``measure``, ``unit``, and ``page``. A plausible chart
+    with a changed denominator or unit is a semantic finding, never cosmetic.
+    """
+    rule = "encoding.metric_unit_consistency"
+    if not readings:
+        return _finding(rule, "unknown", reason="Measured measure-unit-page readings required")
+    by_measure: dict[str, set[str]] = {}
+    for item in readings:
+        if not isinstance(item, dict):
+            return _finding(rule, "unknown", reason="Invalid unit observation")
+        measure, unit = item.get("measure"), item.get("unit")
+        if not all(isinstance(v, str) and v for v in (measure, unit)):
+            return _finding(rule, "unknown", reason="measure and unit must be nonempty strings")
+        by_measure.setdefault(measure, set()).add(unit)
+    conflicts = [
+        {"measure": measure, "units": sorted(units)}
+        for measure, units in by_measure.items() if len(units) > 1
+    ]
+    return _finding(rule, "fail" if conflicts else "pass",
+                    measures=len(by_measure), conflicts=conflicts)

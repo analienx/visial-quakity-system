@@ -127,7 +127,7 @@ def test_non_table_objects_are_skipped_not_flagged() -> None:
 
 
 def test_empty_table_name_is_flagged() -> None:
-    parsed = parse_tmdl("table \n\tcolumn Orphaned\n")
+    parsed = parse_tmdl("table ''\n\tcolumn Orphaned\n")
     assert parsed["tables"] == {}
     assert [row["rule"] for row in parsed["issues"]] == ["empty_table_name"]
 

@@ -120,6 +120,52 @@ def palette_semantic_consistency(
                     overrides=sorted(overrides))
 
 
+def format_declaration_consistency(readings: Sequence[dict] | None) -> dict:
+    """One cohort of visuals must declare one formatting value (DES-06).
+
+    Each reading needs ``cohort`` (visual type + property, e.g.
+    ``"slicer/header.textSize"``), ``visual``, ``page``, and ``value`` —
+    the declared literal, or null when the visual leaves the property
+    to the theme default. A cohort fails when declarations are mixed
+    (some visuals override while others inherit) or disagree; an
+    all-default cohort passes. Effective rendered values are NOT
+    inferred here — resolving the default needs a render adapter.
+    """
+    rule = "typography.format_declaration_consistency"
+    if not readings:
+        return _finding(rule, "unknown",
+                         reason="Measured cohort format readings required")
+    by_cohort: dict[str, dict[str, list[str]]] = {}
+    for item in readings:
+        if not isinstance(item, dict):
+            return _finding(rule, "unknown", reason="Invalid format observation")
+        cohort = item.get("cohort")
+        visual, page = item.get("visual"), item.get("page")
+        if not all(isinstance(v, str) and v for v in (cohort, visual, page)):
+            return _finding(rule, "unknown",
+                             reason="cohort, visual, and page must be nonempty strings")
+        if "value" not in item:
+            return _finding(rule, "unknown", reason="reading needs a value key")
+        value = item["value"]
+        if value is not None and not isinstance(value, (str, int, float, bool)):
+            return _finding(rule, "unknown", reason="value must be a literal or null")
+        slot = by_cohort.setdefault(cohort, {"declared": [], "visuals": []})
+        slot["visuals"].append(f"{page}/{visual}")
+        if value is not None:
+            slot["declared"].append(str(value))
+    conflicts = []
+    for cohort, slot in by_cohort.items():
+        distinct = sorted(set(slot["declared"]))
+        if 0 < len(slot["declared"]) < len(slot["visuals"]):
+            conflicts.append({"cohort": cohort, "kind": "mixed_declaration",
+                              "declared": distinct, "visuals": slot["visuals"]})
+        elif len(distinct) > 1:
+            conflicts.append({"cohort": cohort, "kind": "divergent_values",
+                              "declared": distinct, "visuals": slot["visuals"]})
+    return _finding(rule, "fail" if conflicts else "pass",
+                    cohorts=len(by_cohort), conflicts=conflicts)
+
+
 def cross_page_metric_units(readings: Sequence[dict] | None) -> dict:
     """One measure must keep one unit across pages (DES-05 encoding truth).
 

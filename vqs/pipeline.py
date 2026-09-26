@@ -51,12 +51,17 @@ def _units(params: dict[str, Any]) -> dict:
     return design_rules.cross_page_metric_units(params.get("readings"))
 
 
+def _consistency(params: dict[str, Any]) -> dict:
+    return design_rules.format_declaration_consistency(params.get("readings"))
+
+
 RULES = {
     "axis.display_values_not_distinct": _axis,
     "typography.text_contrast": _contrast,
     "axis.category_label_space": _catspace,
     "palette.semantic_consistency": _palette,
     "encoding.metric_unit_consistency": _units,
+    "typography.format_declaration_consistency": _consistency,
 }
 
 

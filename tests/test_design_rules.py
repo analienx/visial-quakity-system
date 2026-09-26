@@ -3,6 +3,7 @@ from vqs.design_rules import (
     axis_display_distinctness,
     category_axis_space,
     cross_page_metric_units,
+    format_declaration_consistency,
     palette_semantic_consistency,
     text_contrast,
 )
@@ -59,3 +60,32 @@ def test_changed_units_fail_and_stable_units_pass() -> None:
         {"measure": "Revenue", "unit": "USD", "page": "B"},
     ])["status"] == "pass"
     assert cross_page_metric_units(None)["status"] == "unknown"
+def test_mixed_or_divergent_declarations_fail() -> None:
+    mixed = [
+        {"cohort": "slicer/header.textSize", "visual": "a", "page": "P1", "value": None},
+        {"cohort": "slicer/header.textSize", "visual": "b", "page": "P2", "value": 11},
+    ]
+    failed = format_declaration_consistency(mixed)
+    assert failed["status"] == "fail"
+    assert failed["evidence"]["conflicts"][0]["kind"] == "mixed_declaration"
+    divergent = [
+        {"cohort": "card/label.fontSize", "visual": "a", "page": "P1", "value": 10},
+        {"cohort": "card/label.fontSize", "visual": "b", "page": "P1", "value": 12},
+    ]
+    failed = format_declaration_consistency(divergent)
+    assert failed["status"] == "fail"
+    assert failed["evidence"]["conflicts"][0]["kind"] == "divergent_values"
+    assert format_declaration_consistency([
+        {"cohort": "slicer/header.textSize", "visual": "a", "page": "P1", "value": 10},
+        {"cohort": "slicer/header.textSize", "visual": "b", "page": "P2", "value": 10},
+    ])["status"] == "pass"
+    assert format_declaration_consistency([
+        {"cohort": "slicer/header.textSize", "visual": "a", "page": "P1", "value": None},
+        {"cohort": "slicer/header.textSize", "visual": "b", "page": "P2", "value": None},
+    ])["status"] == "pass"
+    assert format_declaration_consistency(None)["status"] == "unknown"
+    assert format_declaration_consistency([])["status"] == "unknown"
+    assert format_declaration_consistency([{"cohort": "x"}])["status"] == "unknown"
+    assert format_declaration_consistency([
+        {"cohort": "x", "visual": "a", "page": "P1", "value": {"nested": 1}},
+    ])["status"] == "unknown"

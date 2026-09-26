@@ -24,6 +24,9 @@ def _facts(**overrides):
                                 {"state": "good", "color": "#00ff00", "page": "p2"}]},
             "encoding.metric_unit_consistency": {
                 "readings": [{"measure": "sales", "unit": "USD", "page": "p1"}]},
+            "typography.format_declaration_consistency": {
+                "readings": [{"cohort": "slicer/header.textSize", "visual": "a",
+                              "page": "p1", "value": None}]},
         },
         "oracles": [
             {"question": "Total revenue?", "known_measures": ["revenue"]},

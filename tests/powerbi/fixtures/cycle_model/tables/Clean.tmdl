@@ -1,0 +1,12 @@
+table 'Clean'
+
+	measure Total = SUM ( 'Clean'[Amount] )
+
+	measure Double = [Total] * 2
+
+	partition CleanRows = m
+		let
+			Source = Solo,
+			Kept = Source
+		in
+			Kept

@@ -41,6 +41,18 @@ vqs measure path/to/Example.Report
 vqs measure path/to/Example.Report --model path/to/Example.SemanticModel/definition --out facts.json
 ```
 
+## vqs cycles
+
+Static acyclicity gate for a `*.SemanticModel` definition folder:
+builds the DAX measure/column reference graph and the M
+query/`let`-binding graphs, and reports cycles. Exit 0 when acyclic,
+1 when a cycle is found, 2 when the folder is unreadable. Pure static
+analysis; the live-engine confirmation stays a Modeling MCP step.
+
+```console
+vqs cycles path/to/Example.SemanticModel/definition
+```
+
 ## vqs doctor
 
 Report which external Power BI tools are present (pbir version,

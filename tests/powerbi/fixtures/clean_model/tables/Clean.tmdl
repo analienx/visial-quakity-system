@@ -1,0 +1,5 @@
+table 'Clean'
+
+	measure Total = SUM ( 'Clean'[Amount] )
+
+	measure Double = [Total] * 2

@@ -1,0 +1,5 @@
+table 'Loop'
+
+	measure A = [B] + 1
+
+	measure B = [A] * 2

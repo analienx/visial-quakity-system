@@ -148,6 +148,20 @@ def _doctor() -> int:
     return 0
 
 
+def _cycles(model: Path) -> int:
+    """Run the static acyclicity gate; 0 acyclic, 1 cycles, 2 blocked."""
+    from vqs.powerbi.cycles import check_model
+
+    try:
+        report = check_model(str(model))
+    except OSError as exc:
+        print(json.dumps({"status": "blocked",
+                          "reason": f"{type(exc).__name__}: {exc}"}))
+        return 2
+    print(json.dumps(report, indent=2, ensure_ascii=False))
+    return 0 if report["acyclic"] else 1
+
+
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(prog="vqs", description="Visual Quality System pre-alpha tools")
     commands = parser.add_subparsers(dest="command", required=True)
@@ -159,6 +173,9 @@ def main(argv: list[str] | None = None) -> int:
                          help="Optional *.SemanticModel definition folder")
     measure.add_argument("--out", type=Path, default=None,
                          help="Write facts JSON here instead of stdout")
+    cycles = commands.add_parser("cycles", help="Static DAX/M acyclicity gate for a model")
+    cycles.add_argument("model", type=Path,
+                        help="*.SemanticModel definition folder")
     commands.add_parser("doctor", help="Report external tool capabilities; never installs")
     review = commands.add_parser("request-review", help="Require complete source-bound page images")
     review.add_argument("report", type=Path)
@@ -185,6 +202,8 @@ def main(argv: list[str] | None = None) -> int:
     args = parser.parse_args(argv)
     if args.command == "measure":
         return _measure(args.report, args.model, args.out)
+    if args.command == "cycles":
+        return _cycles(args.model)
     if args.command == "doctor":
         return _doctor()
     if args.command == "status":

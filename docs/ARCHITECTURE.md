@@ -33,6 +33,37 @@ VQS must share the **question, design, evidence, finding and acceptance schemas*
 | `vqs.repair` | Typed versioned operations + preconditions + allowlist; disposable worktree, semantic-impact ledger, validate/build/refresh/oracle/render/review, rollback and human promotion gate. |
 | Optional adapters | Fab Inspector governance, Microsoft authoring/model tools, optional Draco 2 where neutral chart mapping is supported, Rayfin deployment CLI, optional model providers. Versions and unsupported states are recorded. |
 
+## Power BI tool interfaces (decided 2026-09-26)
+
+Verified against the installed tools, not assumed:
+
+- **Report/source facts:** direct PBIR/TMDL parsing (pages, visuals,
+  positions, formatting, bindings, filters, DAX source, diffs).
+  VQS owns this layer; see `vqs.powerbi.measure` and `vqs measure`.
+- **Semantic model:** Microsoft local Power BI Authoring/Modeling MCP
+  (`@microsoft/powerbi-modeling-mcp`) is the primary interface for live
+  Desktop models — connect, tables/columns/measures/relationships, DAX
+  Execute/Validate, model edits and transactions. It cannot touch
+  report pages or layouts.
+- **Desktop/render:** Power BI Desktop Bridge for instance
+  control and source-bound screenshots.
+- **VQS owns** quality logic, design rules, evidence reconciliation,
+  repair planning, and acceptance.
+- **pbir-cli is optional**, report-side only: `validate`
+  (schema/`--qa`/`--semantic`), `fields`, `bpa`, `add`/`set`/`get`,
+  theme/color/fonts. Those commands were proven to work with no
+  `AdomdClient.dll` present (2026-09-26 probe). Only `pbir model -d/-q`
+  and `pbir validate --fields` need the client library, and Modeling
+  MCP covers both better — so VQS never requires them.
+- **ADOMD role: none.** VQS has no ADOMD.NET dependency. The only
+  sanctioned ADOMD path is pbir's own discovery (`PBIR_ADOMD_DIR` or a
+  DAX Studio install) for interactive `pbir model` use. No ADOMD
+  installer ships with VQS or runs during setup; `vqs doctor` reports
+  discoverability as information only.
+- **Caution:** pbir.tools ships under a Custom Non-Commercial,
+  no-derivatives license. VQS must stay fully functional with pbir
+  absent; any deeper dependence needs a licensing decision first.
+
 ## A real run, not a diagram-only workflow
 
 `discover → contract → facts → static rules → render → observe → triage → [plan → typed patch → schema/build/data tests → fresh full-page/route render → interaction/neighbor regression → independent review]* → pass|fail|blocked|proposed`. Default mode is **read-only review**. Proposed and applied changes are isolated from the input repository. The eventual `vqs run --artifact PATH --kind powerbi|fabric-app --mode review|propose|repair` is a **target CLI**, not a current command; currently `vqs inventory` and `vqs request-review` are exposed. See [the execution blueprint](EXECUTION_ARCHITECTURE.md#3-run-state-machine-and-actual-jobs) for file and process locks, budgets, retry classes and privacy.

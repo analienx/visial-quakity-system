@@ -93,7 +93,7 @@ def test_e2e_ledger_valid_with_zero_verified_and_wp00_runnable() -> None:
     assert validate(data) == []
     summary = summarize(data)
     assert summary["independently_verified"] == 0
-    assert summary["initial_release_packages"] == 13
+    assert summary["initial_release_packages"] == 14
     assert summary["deferred"] == 1
     assert summary["next_runnable"] == ["WP-00"]
 
@@ -103,13 +103,13 @@ def test_e2e_status_snapshot_matches_machine_ledger() -> None:
     summary = summarize(data)
     status = (ROOT / "roadmap" / "STATUS.md").read_text(encoding="utf-8-sig")
     assert "issues/4" in status
-    assert "0 independently verified / 13" in status
+    assert "0 independently verified / 14" in status
     assert "| **verified" not in status
     assert summary["snapshot_utc"] in ("2026-09-23T20:40:00Z", data["snapshot_utc"])
-    for issue in range(5, 19):
+    for issue in list(range(5, 19)) + [19]:
         assert f"/issues/{issue}" in status
     ledger_issues = sorted(item["issue"] for item in data["packages"])
-    assert ledger_issues == list(range(5, 19))
+    assert ledger_issues == list(range(5, 19)) + [19]
 
 
 def test_e2e_program_docs_link_issue4_and_ledger() -> None:

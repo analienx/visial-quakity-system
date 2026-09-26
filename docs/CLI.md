@@ -28,6 +28,31 @@ bindings, source hash. Read-only; not design approval.
 vqs inventory path/to/Example.Report
 ```
 
+## vqs measure
+
+Emit check-ready facts for a PBIR `*.Report` folder: text contrast,
+palette assignments, format-declaration cohorts, plus metric units and
+model bindings when `--model` points at a `*.SemanticModel` definition
+folder. Read-only; anything the sources cannot prove is omitted. Feed
+the output to `vqs check`.
+
+```console
+vqs measure path/to/Example.Report
+vqs measure path/to/Example.Report --model path/to/Example.SemanticModel/definition --out facts.json
+```
+
+## vqs doctor
+
+Report which external Power BI tools are present (pbir version,
+Desktop Bridge, Modeling MCP, running Desktop, ADOMD
+discoverability). Read-only and informational: it installs nothing,
+and always exits 0. ADOMD is reported only because `pbir model` and
+`pbir validate --fields` need it; VQS itself has no ADOMD dependency.
+
+```console
+vqs doctor
+```
+
 ## vqs request-review
 
 Build a review template from a report plus a renders directory.

@@ -116,11 +116,50 @@ def _adjudicate_bundle(bundle_path: Path, run_root: Path, run_id: str | None) ->
                                      decided["verdict"], findings))
 
 
+def _measure(report: Path, model: Path | None, out: Path | None) -> int:
+    """Emit measured facts for a PBIR report; exit 2 when unreadable."""
+    from vqs.powerbi.measure import measure_report
+
+    try:
+        facts = measure_report(str(report),
+                               str(model) if model is not None else None)
+    except OSError as exc:
+        print(json.dumps({"status": "blocked",
+                          "reason": f"{type(exc).__name__}: {exc}"}))
+        return 2
+    text = json.dumps(facts, indent=2, ensure_ascii=False)
+    if out is None:
+        print(text)
+    else:
+        try:
+            out.write_text(text + "\n", encoding="utf-8")
+        except OSError as exc:
+            print(json.dumps({"status": "blocked",
+                              "reason": f"{type(exc).__name__}: {exc}"}))
+            return 2
+    return 0
+
+
+def _doctor() -> int:
+    """Print the capability report; always exit 0, never gate."""
+    from vqs.doctor import report
+
+    print(json.dumps(report(), indent=2, ensure_ascii=False))
+    return 0
+
+
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(prog="vqs", description="Visual Quality System pre-alpha tools")
     commands = parser.add_subparsers(dest="command", required=True)
     inventory = commands.add_parser("inventory", help="Read PBIR definition and bindings; not design approval")
     inventory.add_argument("report", type=Path, help="Enhanced-format *.Report folder")
+    measure = commands.add_parser("measure", help="Emit check-ready facts for a PBIR report")
+    measure.add_argument("report", type=Path, help="Enhanced-format *.Report folder")
+    measure.add_argument("--model", type=Path, default=None,
+                         help="Optional *.SemanticModel definition folder")
+    measure.add_argument("--out", type=Path, default=None,
+                         help="Write facts JSON here instead of stdout")
+    commands.add_parser("doctor", help="Report external tool capabilities; never installs")
     review = commands.add_parser("request-review", help="Require complete source-bound page images")
     review.add_argument("report", type=Path)
     review.add_argument("renders", type=Path)
@@ -144,6 +183,10 @@ def main(argv: list[str] | None = None) -> int:
     bundle_cmd.add_argument("--run-root", type=Path, default=Path(".vqs-runs"))
     bundle_cmd.add_argument("--run-id", default=None)
     args = parser.parse_args(argv)
+    if args.command == "measure":
+        return _measure(args.report, args.model, args.out)
+    if args.command == "doctor":
+        return _doctor()
     if args.command == "status":
         return _status(args.ledger, args.format)
     if args.command == "check":

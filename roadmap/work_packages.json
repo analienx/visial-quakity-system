@@ -1,41 +1,489 @@
 {
   "schema_version": "1.0.0",
-  "snapshot_utc": "2026-09-23T20:40:00Z",
+  "snapshot_utc": "2026-09-26T15:04:59Z",
   "program_issue": "https://github.com/analienx/visual-quality-system/issues/4",
-  "product_scope": ["powerbi-desktop", "docx-word"],
-  "deferred_scope": ["fabric-apps-rayfin"],
+  "product_scope": [
+    "powerbi-desktop",
+    "docx-word"
+  ],
+  "deferred_scope": [
+    "fabric-apps-rayfin"
+  ],
   "assertion": "Planning snapshot only. No execution, test, PR merge or acceptance verified by this ledger creation.",
-  "status_vocabulary": ["planned", "ready", "active", "review", "blocked", "failed", "verified", "deferred"],
-  "verification_vocabulary": ["not_run", "partial", "failed", "blocked", "verified"],
+  "status_vocabulary": [
+    "planned",
+    "ready",
+    "active",
+    "review",
+    "blocked",
+    "failed",
+    "verified",
+    "deferred"
+  ],
+  "verification_vocabulary": [
+    "not_run",
+    "partial",
+    "failed",
+    "blocked",
+    "verified"
+  ],
   "gate_policy": "Package status verified requires independent verifier, exact merged commit, pinned environment and immutable evidence references; closed issue alone is insufficient.",
   "historical_epics": [
-    {"issue": 1, "purpose": "original extraction epic", "closure": "only after standalone parity"},
-    {"issue": 2, "purpose": "default story and automated design epic", "closure": "after scope-specific story/authoring acceptance"},
-    {"issue": 3, "purpose": "runner and later web adapter epic", "closure": "do not mark web completed in Power BI and Word release"}
+    {
+      "issue": 1,
+      "purpose": "original extraction epic",
+      "closure": "only after standalone parity"
+    },
+    {
+      "issue": 2,
+      "purpose": "default story and automated design epic",
+      "closure": "after scope-specific story/authoring acceptance"
+    },
+    {
+      "issue": 3,
+      "purpose": "runner and later web adapter epic",
+      "closure": "do not mark web completed in Power BI and Word release"
+    }
   ],
   "existing_capabilities": [
-    {"component": "portable-pbir-inventory", "status": "extracted_unverified_in_this_program", "baseline_issue": 5},
-    {"component": "image-provenance-and-review-policy", "status": "extracted_unverified_in_this_program", "baseline_issue": 5},
-    {"component": "quantitative-axis-contrast-category-primitives", "status": "extracted_unverified_in_this_program", "baseline_issue": 5},
-    {"component": "desktop-vision-repair-prototype", "status": "prototype_in_pbipdocumenter_pr_12_not_standalone_acceptance", "baseline_issue": 5},
-    {"component": "word-paginated-acceptance", "status": "not_verified", "baseline_issue": 9},
-    {"component": "fabric-apps-adapter", "status": "deferred", "baseline_issue": 18}
+    {
+      "component": "portable-pbir-inventory",
+      "status": "extracted_unverified_in_this_program",
+      "baseline_issue": 5
+    },
+    {
+      "component": "image-provenance-and-review-policy",
+      "status": "extracted_unverified_in_this_program",
+      "baseline_issue": 5
+    },
+    {
+      "component": "quantitative-axis-contrast-category-primitives",
+      "status": "extracted_unverified_in_this_program",
+      "baseline_issue": 5
+    },
+    {
+      "component": "desktop-vision-repair-prototype",
+      "status": "prototype_in_pbipdocumenter_pr_12_not_standalone_acceptance",
+      "baseline_issue": 5
+    },
+    {
+      "component": "word-paginated-acceptance",
+      "status": "not_verified",
+      "baseline_issue": 9
+    },
+    {
+      "component": "fabric-apps-adapter",
+      "status": "deferred",
+      "baseline_issue": 18
+    }
   ],
   "packages": [
-    {"id": "WP-00", "stage": "S0", "title": "Baseline and fixture inventory", "issue": 5, "depends_on": [], "lane": "integration-forensics", "owned_paths": ["docs/BASELINE.md", "roadmap/", "fixtures/manifest"], "state": "planned", "verification": "not_run", "required_gate": "G0-baseline", "evidence_required": ["clean-install-and-test-log", "tool-capability-matrix", "fixture-privacy-manifest"], "pull_request": null, "verified_commit": null, "evidence_uri": null},
-    {"id": "WP-01", "stage": "S1", "title": "Versioned typed evidence and intent contracts", "issue": 6, "depends_on": ["WP-00"], "lane": "core-contracts", "owned_paths": ["vqs/contracts/", "schemas/", "tests/contracts/"], "state": "planned", "verification": "not_run", "required_gate": "G0-contracts", "evidence_required": ["json-schema-tests", "stale-evidence-negative-tests", "independent-contract-review"], "pull_request": null, "verified_commit": null, "evidence_uri": null},
-    {"id": "WP-02", "stage": "S1", "title": "Local runner, private evidence ledger and safe subprocess ports", "issue": 7, "depends_on": ["WP-01"], "lane": "orchestration", "owned_paths": ["vqs/core/run.py", "vqs/core/evidence_store.py", "vqs/adapters/", "tests/runtime/"], "state": "planned", "verification": "not_run", "required_gate": "G0-runner", "evidence_required": ["crash-resume-tests", "file-and-pid-lock-tests", "private-evidence-and-leak-check"], "pull_request": null, "verified_commit": null, "evidence_uri": null},
-    {"id": "WP-03", "stage": "S2A", "title": "Windows Desktop capability and native full-canvas capture", "issue": 8, "depends_on": ["WP-00", "WP-01"], "lane": "windows-pbip", "owned_paths": ["vqs/powerbi/desktop/", "tests/powerbi/desktop/"], "state": "planned", "verification": "not_run", "required_gate": "G1-desktop-spike", "evidence_required": ["real-populated-pbip-and-query", "source-bound-full-page-captures", "wrong-pid-stale-crop-negative-tests"], "pull_request": null, "verified_commit": null, "evidence_uri": null},
-    {"id": "WP-04", "stage": "S2B", "title": "Word pagination-backend feasibility", "issue": 9, "depends_on": ["WP-00", "WP-01"], "lane": "word-render", "owned_paths": ["vqs/document/render/", "tests/document/render/"], "state": "planned", "verification": "not_run", "required_gate": "G1-word-spike", "evidence_required": ["backend-fidelity-matrix", "all-pages-pdf-png-hashes", "missing-font-and-crash-negative-tests"], "pull_request": null, "verified_commit": null, "evidence_uri": null},
-    {"id": "WP-05", "stage": "S3", "title": "PBIR and semantic-model scoped facts", "issue": 10, "depends_on": ["WP-01", "WP-03"], "lane": "semantic-facts", "owned_paths": ["vqs/powerbi/inspect/", "vqs/data/", "tests/powerbi/facts/"], "state": "planned", "verification": "not_run", "required_gate": "G1-semantic-readiness", "evidence_required": ["effective-style-provenance", "scope-and-rls-aware-dax-oracles", "missing-data-negative-fixtures"], "pull_request": null, "verified_commit": null, "evidence_uri": null},
-    {"id": "WP-06", "stage": "S3", "title": "Measured design/profile and palette rules", "issue": 11, "depends_on": ["WP-01", "WP-05"], "lane": "design-rules", "owned_paths": ["vqs/design/", "vqs/powerbi/rules/", "tests/design/"], "state": "planned", "verification": "not_run", "required_gate": "G2-quantitative-design", "evidence_required": ["golden-corpus-tp-tn", "contrast-palette-label-oracles", "false-positive-audit"], "pull_request": null, "verified_commit": null, "evidence_uri": null},
-    {"id": "WP-07", "stage": "S4", "title": "Independent visual review and source-bound evidence", "issue": 12, "depends_on": ["WP-02", "WP-03", "WP-05"], "lane": "review-evidence", "owned_paths": ["vqs/review/", "vqs/render/evidence.py", "tests/review/"], "state": "planned", "verification": "not_run", "required_gate": "G2-independent-perception", "evidence_required": ["correct-calibration-all-pages", "observed-vs-hypothesis-tests", "independent-reviewer-and-privacy-check"], "pull_request": null, "verified_commit": null, "evidence_uri": null},
-    {"id": "WP-08", "stage": "S3-S5", "title": "Word OOXML, all-page quality and typed repair", "issue": 13, "depends_on": ["WP-01", "WP-02", "WP-04"], "lane": "word-analysis", "owned_paths": ["vqs/document/inspect/", "vqs/document/rules/", "vqs/document/repair/", "tests/document/"], "state": "planned", "verification": "not_run", "required_gate": "G5-word-all-pages", "evidence_required": ["ooXML-and-page-fixtures", "report-figure-revision-oracles", "real-before-after-paginated-docx"], "pull_request": null, "verified_commit": null, "evidence_uri": null},
-    {"id": "WP-09", "stage": "S5", "title": "Source-safe PBIR and theme repair operations", "issue": 14, "depends_on": ["WP-02", "WP-03", "WP-05", "WP-06", "WP-07"], "lane": "powerbi-authoring", "owned_paths": ["vqs/powerbi/author/", "vqs/repair/", "tests/powerbi/repair/"], "state": "planned", "verification": "not_run", "required_gate": "G3-G4-real-repair", "evidence_required": ["typed-source-diff-and-rollback", "validated-live-data-and-render", "category-and-neighbor-regression", "independent-re-review"], "pull_request": null, "verified_commit": null, "evidence_uri": null},
-    {"id": "WP-10", "stage": "S6", "title": "Conditional default stories and answer oracles", "issue": 15, "depends_on": ["WP-01", "WP-05", "WP-06"], "lane": "intent-analytics", "owned_paths": ["vqs/stories/", "vqs/journey/", "tests/stories/"], "state": "planned", "verification": "not_run", "required_gate": "G4-question-preservation", "evidence_required": ["two-domain-candidate-story-corpus", "filter-context-answer-oracles", "ambiguous-measure-negative-fixtures"], "pull_request": null, "verified_commit": null, "evidence_uri": null},
-    {"id": "WP-11", "stage": "S7", "title": "Independent two-PBIP plus paginated-DOCX acceptance", "issue": 16, "depends_on": ["WP-02", "WP-03", "WP-04", "WP-05", "WP-06", "WP-07", "WP-08", "WP-09", "WP-10"], "lane": "independent-verification", "owned_paths": ["tests/e2e/", "docs/ACCEPTANCE_REPORT.md"], "state": "planned", "verification": "not_run", "required_gate": "G6-full-e2e", "evidence_required": ["two-unrelated-pbip-run-manifests", "full-docx-page-and-figure-report", "negative-control-log", "independent-verifier-signoff"], "pull_request": null, "verified_commit": null, "evidence_uri": null},
-    {"id": "WP-12", "stage": "S8", "title": "PBIPDocumenter consumer migration and standalone release", "issue": 17, "depends_on": ["WP-11"], "lane": "release-integration", "owned_paths": ["pyproject.toml", "docs/CONSUMER_INTEGRATION.md", "vqs/cli.py"], "state": "planned", "verification": "not_run", "required_gate": "G6-owner-promotion", "evidence_required": ["clean-install-parity", "consumer-draft-pr", "release-manifest-owner-approval"], "pull_request": null, "verified_commit": null, "evidence_uri": null},
-    {"id": "WP-13", "stage": "S9-future", "title": "Fabric Apps/Rayfin adapter", "issue": 18, "depends_on": ["WP-12"], "lane": "web-future", "owned_paths": ["vqs/web/", "workers/playwright/"], "state": "deferred", "verification": "not_run", "required_gate": "future-owner-approved-web-release", "evidence_required": ["separate-synthetic-react-and-staging-plan"], "pull_request": null, "verified_commit": null, "evidence_uri": null}
+    {
+      "id": "WP-00",
+      "stage": "S0",
+      "title": "Baseline and fixture inventory",
+      "issue": 5,
+      "depends_on": [],
+      "lane": "integration-forensics",
+      "owned_paths": [
+        "docs/BASELINE.md",
+        "roadmap/",
+        "fixtures/manifest"
+      ],
+      "state": "planned",
+      "verification": "not_run",
+      "required_gate": "G0-baseline",
+      "evidence_required": [
+        "clean-install-and-test-log",
+        "tool-capability-matrix",
+        "fixture-privacy-manifest"
+      ],
+      "pull_request": null,
+      "verified_commit": null,
+      "evidence_uri": null
+    },
+    {
+      "id": "WP-01",
+      "stage": "S1",
+      "title": "Versioned typed evidence and intent contracts",
+      "issue": 6,
+      "depends_on": [
+        "WP-00"
+      ],
+      "lane": "core-contracts",
+      "owned_paths": [
+        "vqs/contracts/",
+        "schemas/",
+        "tests/contracts/"
+      ],
+      "state": "planned",
+      "verification": "not_run",
+      "required_gate": "G0-contracts",
+      "evidence_required": [
+        "json-schema-tests",
+        "stale-evidence-negative-tests",
+        "independent-contract-review"
+      ],
+      "pull_request": null,
+      "verified_commit": null,
+      "evidence_uri": null
+    },
+    {
+      "id": "WP-02",
+      "stage": "S1",
+      "title": "Local runner, private evidence ledger and safe subprocess ports",
+      "issue": 7,
+      "depends_on": [
+        "WP-01"
+      ],
+      "lane": "orchestration",
+      "owned_paths": [
+        "vqs/core/run.py",
+        "vqs/core/evidence_store.py",
+        "vqs/adapters/",
+        "tests/runtime/"
+      ],
+      "state": "planned",
+      "verification": "not_run",
+      "required_gate": "G0-runner",
+      "evidence_required": [
+        "crash-resume-tests",
+        "file-and-pid-lock-tests",
+        "private-evidence-and-leak-check"
+      ],
+      "pull_request": null,
+      "verified_commit": null,
+      "evidence_uri": null
+    },
+    {
+      "id": "WP-03",
+      "stage": "S2A",
+      "title": "Windows Desktop capability and native full-canvas capture",
+      "issue": 8,
+      "depends_on": [
+        "WP-00",
+        "WP-01"
+      ],
+      "lane": "windows-pbip",
+      "owned_paths": [
+        "vqs/powerbi/desktop/",
+        "tests/powerbi/desktop/"
+      ],
+      "state": "planned",
+      "verification": "not_run",
+      "required_gate": "G1-desktop-spike",
+      "evidence_required": [
+        "real-populated-pbip-and-query",
+        "source-bound-full-page-captures",
+        "wrong-pid-stale-crop-negative-tests"
+      ],
+      "pull_request": null,
+      "verified_commit": null,
+      "evidence_uri": null
+    },
+    {
+      "id": "WP-04",
+      "stage": "S2B",
+      "title": "Word pagination-backend feasibility",
+      "issue": 9,
+      "depends_on": [
+        "WP-00",
+        "WP-01"
+      ],
+      "lane": "word-render",
+      "owned_paths": [
+        "vqs/document/render/",
+        "tests/document/render/"
+      ],
+      "state": "planned",
+      "verification": "not_run",
+      "required_gate": "G1-word-spike",
+      "evidence_required": [
+        "backend-fidelity-matrix",
+        "all-pages-pdf-png-hashes",
+        "missing-font-and-crash-negative-tests"
+      ],
+      "pull_request": null,
+      "verified_commit": null,
+      "evidence_uri": null
+    },
+    {
+      "id": "WP-05",
+      "stage": "S3",
+      "title": "PBIR and semantic-model scoped facts",
+      "issue": 10,
+      "depends_on": [
+        "WP-01",
+        "WP-03"
+      ],
+      "lane": "semantic-facts",
+      "owned_paths": [
+        "vqs/powerbi/inspect/",
+        "vqs/data/",
+        "tests/powerbi/facts/"
+      ],
+      "state": "planned",
+      "verification": "not_run",
+      "required_gate": "G1-semantic-readiness",
+      "evidence_required": [
+        "effective-style-provenance",
+        "scope-and-rls-aware-dax-oracles",
+        "missing-data-negative-fixtures"
+      ],
+      "pull_request": null,
+      "verified_commit": null,
+      "evidence_uri": null
+    },
+    {
+      "id": "WP-06",
+      "stage": "S3",
+      "title": "Measured design/profile and palette rules",
+      "issue": 11,
+      "depends_on": [
+        "WP-01",
+        "WP-05"
+      ],
+      "lane": "design-rules",
+      "owned_paths": [
+        "vqs/design/",
+        "vqs/powerbi/rules/",
+        "tests/design/"
+      ],
+      "state": "planned",
+      "verification": "not_run",
+      "required_gate": "G2-quantitative-design",
+      "evidence_required": [
+        "golden-corpus-tp-tn",
+        "contrast-palette-label-oracles",
+        "false-positive-audit"
+      ],
+      "pull_request": null,
+      "verified_commit": null,
+      "evidence_uri": null
+    },
+    {
+      "id": "WP-07",
+      "stage": "S4",
+      "title": "Independent visual review and source-bound evidence",
+      "issue": 12,
+      "depends_on": [
+        "WP-02",
+        "WP-03",
+        "WP-05"
+      ],
+      "lane": "review-evidence",
+      "owned_paths": [
+        "vqs/review/",
+        "vqs/render/evidence.py",
+        "tests/review/"
+      ],
+      "state": "planned",
+      "verification": "not_run",
+      "required_gate": "G2-independent-perception",
+      "evidence_required": [
+        "correct-calibration-all-pages",
+        "observed-vs-hypothesis-tests",
+        "independent-reviewer-and-privacy-check"
+      ],
+      "pull_request": null,
+      "verified_commit": null,
+      "evidence_uri": null
+    },
+    {
+      "id": "WP-08",
+      "stage": "S3-S5",
+      "title": "Word OOXML, all-page quality and typed repair",
+      "issue": 13,
+      "depends_on": [
+        "WP-01",
+        "WP-02",
+        "WP-04"
+      ],
+      "lane": "word-analysis",
+      "owned_paths": [
+        "vqs/document/inspect/",
+        "vqs/document/rules/",
+        "vqs/document/repair/",
+        "tests/document/"
+      ],
+      "state": "planned",
+      "verification": "not_run",
+      "required_gate": "G5-word-all-pages",
+      "evidence_required": [
+        "ooXML-and-page-fixtures",
+        "report-figure-revision-oracles",
+        "real-before-after-paginated-docx"
+      ],
+      "pull_request": null,
+      "verified_commit": null,
+      "evidence_uri": null
+    },
+    {
+      "id": "WP-09",
+      "stage": "S5",
+      "title": "Source-safe PBIR and theme repair operations",
+      "issue": 14,
+      "depends_on": [
+        "WP-02",
+        "WP-03",
+        "WP-05",
+        "WP-06",
+        "WP-07"
+      ],
+      "lane": "powerbi-authoring",
+      "owned_paths": [
+        "vqs/powerbi/author/",
+        "vqs/repair/",
+        "tests/powerbi/repair/"
+      ],
+      "state": "planned",
+      "verification": "not_run",
+      "required_gate": "G3-G4-real-repair",
+      "evidence_required": [
+        "typed-source-diff-and-rollback",
+        "validated-live-data-and-render",
+        "category-and-neighbor-regression",
+        "independent-re-review"
+      ],
+      "pull_request": null,
+      "verified_commit": null,
+      "evidence_uri": null
+    },
+    {
+      "id": "WP-10",
+      "stage": "S6",
+      "title": "Conditional default stories and answer oracles",
+      "issue": 15,
+      "depends_on": [
+        "WP-01",
+        "WP-05",
+        "WP-06"
+      ],
+      "lane": "intent-analytics",
+      "owned_paths": [
+        "vqs/stories/",
+        "vqs/journey/",
+        "tests/stories/"
+      ],
+      "state": "planned",
+      "verification": "not_run",
+      "required_gate": "G4-question-preservation",
+      "evidence_required": [
+        "two-domain-candidate-story-corpus",
+        "filter-context-answer-oracles",
+        "ambiguous-measure-negative-fixtures"
+      ],
+      "pull_request": null,
+      "verified_commit": null,
+      "evidence_uri": null
+    },
+    {
+      "id": "WP-11",
+      "stage": "S7",
+      "title": "Independent two-PBIP plus paginated-DOCX acceptance",
+      "issue": 16,
+      "depends_on": [
+        "WP-02",
+        "WP-03",
+        "WP-04",
+        "WP-05",
+        "WP-06",
+        "WP-07",
+        "WP-08",
+        "WP-09",
+        "WP-10"
+      ],
+      "lane": "independent-verification",
+      "owned_paths": [
+        "tests/e2e/",
+        "docs/ACCEPTANCE_REPORT.md"
+      ],
+      "state": "planned",
+      "verification": "not_run",
+      "required_gate": "G6-full-e2e",
+      "evidence_required": [
+        "two-unrelated-pbip-run-manifests",
+        "full-docx-page-and-figure-report",
+        "negative-control-log",
+        "independent-verifier-signoff"
+      ],
+      "pull_request": null,
+      "verified_commit": null,
+      "evidence_uri": null
+    },
+    {
+      "id": "WP-12",
+      "stage": "S8",
+      "title": "PBIPDocumenter consumer migration and standalone release",
+      "issue": 17,
+      "depends_on": [
+        "WP-11"
+      ],
+      "lane": "release-integration",
+      "owned_paths": [
+        "pyproject.toml",
+        "docs/CONSUMER_INTEGRATION.md",
+        "vqs/cli.py"
+      ],
+      "state": "planned",
+      "verification": "not_run",
+      "required_gate": "G6-owner-promotion",
+      "evidence_required": [
+        "clean-install-parity",
+        "consumer-draft-pr",
+        "release-manifest-owner-approval"
+      ],
+      "pull_request": null,
+      "verified_commit": null,
+      "evidence_uri": null
+    },
+    {
+      "id": "WP-13",
+      "stage": "S9-future",
+      "title": "Fabric Apps/Rayfin adapter",
+      "issue": 18,
+      "depends_on": [
+        "WP-12"
+      ],
+      "lane": "web-future",
+      "owned_paths": [
+        "vqs/web/",
+        "workers/playwright/"
+      ],
+      "state": "deferred",
+      "verification": "not_run",
+      "required_gate": "future-owner-approved-web-release",
+      "evidence_required": [
+        "separate-synthetic-react-and-staging-plan"
+      ],
+      "pull_request": null,
+      "verified_commit": null,
+      "evidence_uri": null
+    },
+    {
+      "id": "WP-19",
+      "stage": "S5",
+      "title": "PBIR/TMDL measurement adapter plus source auto-checks",
+      "issue": 19,
+      "depends_on": [],
+      "lane": "powerbi-measurement",
+      "owned_paths": [
+        "vqs/powerbi/measure.py",
+        "vqs/cli.py",
+        "tests/powerbi/"
+      ],
+      "state": "active",
+      "verification": "not_run",
+      "required_gate": "G0-offline",
+      "evidence_required": [
+        "pytest-ruff",
+        "fixture-exactness",
+        "contoso-parity"
+      ],
+      "pull_request": null,
+      "verified_commit": null,
+      "evidence_uri": null
+    }
   ],
   "first_ready_package": "WP-00",
   "next_action": "Run baseline #5 locally and publish evidence; do not mark any package verified from this planning commit."

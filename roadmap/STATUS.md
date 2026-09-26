@@ -1,6 +1,6 @@
 # Delivery status ledger — planning baseline
 
-**Snapshot:** 2026-09-23. **Program:** [#4](https://github.com/analienx/visual-quality-system/issues/4). **Machine source:** [work_packages.json](work_packages.json). **State meaning:** [protocol](../docs/LEDGER_AND_AGENT_PROTOCOL.md). **WARNING:** this is the state at planning creation, not a claim any new code has run. The `snapshot_utc` inside the machine ledger is an edit timestamp, not current environmental verification. Future snapshots should be generated from the machine ledger, with independent verification before moving a package to `verified`.
+**Snapshot:** 2026-09-26. **Program:** [#4](https://github.com/analienx/visual-quality-system/issues/4). **Machine source:** [work_packages.json](work_packages.json). **State meaning:** [protocol](../docs/LEDGER_AND_AGENT_PROTOCOL.md). **WARNING:** this is the state at planning creation, not a claim any new code has run. The `snapshot_utc` inside the machine ledger is an edit timestamp, not current environmental verification. Future snapshots should be generated from the machine ledger, with independent verification before moving a package to `verified`.
 
 | Work package | Phase | Component / acceptance focus | Depends on | GitHub | State / proof |
 | --- | --- | --- | --- | --- | --- |
@@ -18,8 +18,9 @@
 | WP-11 | S7 | Independent two-PBIP + one-generated-DOCX end-to-end matrix | WP-02..WP-10 | [#16](https://github.com/analienx/visual-quality-system/issues/16) | planned / not run |
 | WP-12 | S8 | PBIPDocumenter consumer integration and owner-reviewed release | WP-11 | [#17](https://github.com/analienx/visual-quality-system/issues/17) | planned / not run |
 | WP-13 | S9 future | Rayfin/Fabric Apps/Playwright adapter | WP-12 + separate approval | [#18](https://github.com/analienx/visual-quality-system/issues/18) | **deferred / not run**; excluded from first release |
+| WP-19 | S5 | PBIR/TMDL measurement adapter plus source auto-checks | — | [#19](https://github.com/analienx/visual-quality-system/issues/19) | **active / merged to main** — emitter + `measure` + `doctor` done, independent verification pending |
 
-**Phase verification:** none of S0–S8 has been newly verified under this program. **Work-package evidence:** 0 independently verified / 13 first-release packages; 1 deferred. **Next real task:** [#5 baseline](https://github.com/analienx/visual-quality-system/issues/5): inspect and test the actual standalone repo and current Desktop/Word environment, then update this status through an independently reviewed PR. Do not assume the prototype's earlier tests are part of these counts.
+**Phase verification:** none of S0–S8 has been newly verified under this program. **Work-package evidence:** 0 independently verified / 14 first-release packages; 1 deferred. **Next real task:** [#5 baseline](https://github.com/analienx/visual-quality-system/issues/5): inspect and test the actual standalone repo and current Desktop/Word environment, then update this status through an independently reviewed PR. Do not assume the prototype's earlier tests are part of these counts.
 
 **Legacy prototype, not new completion:** PBIPDocumenter [draft PR #12](https://github.com/analienx/pbidocumenter/pull/12) contains an existing Desktop/image/repair experiment and Word policy/renderer scaffolding. The new repo has partial source extraction and basic inventory primitives. Both require fresh baseline verification and standalone all-page acceptance. Historic issues [#1](https://github.com/analienx/visual-quality-system/issues/1), [#2](https://github.com/analienx/visual-quality-system/issues/2), and [#3](https://github.com/analienx/visual-quality-system/issues/3) are program-level references, not three additional completed packages.
 

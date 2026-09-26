@@ -1,0 +1,7 @@
+table 'Fact Sales'
+
+	measure 'Revenue' = SUM('Fact Sales'[Amount])
+		formatString: $#,0
+
+	column 'Amount'
+		dataType: decimal

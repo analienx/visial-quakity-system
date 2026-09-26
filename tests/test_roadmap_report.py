@@ -20,7 +20,7 @@ def test_published_ledger_is_acyclic_and_has_valid_status_claims() -> None:
     assert validate(data) == []
     result = summarize(data)
     assert result["independently_verified"] == 0
-    assert result["initial_release_packages"] == 13
+    assert result["initial_release_packages"] == 14
     assert result["deferred"] == 1
     assert result["next_runnable"] == ["WP-00"]
 
